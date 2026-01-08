@@ -41,4 +41,10 @@ public class Controller {
         detailsList.removeIf(details -> details.getId() == id);
         return "Data Deleted Successfully";
     }
+
+    @RequestMapping("/hello")
+    public String sayHello(){
+        return "Hello my friend";
+
+    }
 }
