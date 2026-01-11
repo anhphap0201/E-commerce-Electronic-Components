@@ -9,7 +9,10 @@ import java.util.*;
 public class Controller {
 
     private List<TestAPI> detailsList = new ArrayList<>();
-
+    {
+        detailsList.add(new TestAPI(1, "Resistor"));
+        detailsList.add(new TestAPI(2, "Capacitor"));
+    }
     // GET API → Fetch all details
     @GetMapping("/details")
     public List<TestAPI> getAllDetails() {
@@ -40,11 +43,5 @@ public class Controller {
     public String deleteDetails(@PathVariable int id) {
         detailsList.removeIf(details -> details.getId() == id);
         return "Data Deleted Successfully";
-    }
-
-    @RequestMapping("/hello")
-    public String sayHello(){
-        return "Hello my friend";
-
     }
 }
