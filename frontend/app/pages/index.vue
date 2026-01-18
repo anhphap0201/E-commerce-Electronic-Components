@@ -14,10 +14,10 @@
           >
             <div :key="currentBanner" class="absolute inset-0 flex items-center justify-center p-8">
               <div class="text-center text-white">
-                <h2 class="text-4xl font-bold mb-3">{{ banners[currentBanner].title }}</h2>
-                <p class="text-xl mb-6 text-blue-100">{{ banners[currentBanner].description }}</p>
+                <h2 class="text-4xl font-bold mb-3">{{ banners[currentBanner]?.title }}</h2>
+                <p class="text-xl mb-6 text-blue-100">{{ banners[currentBanner]?.description }}</p>
                 <button class="px-8 py-3 bg-white text-[#09f] rounded-xl font-semibold text-lg transition-all duration-300 hover:bg-blue-50 hover:scale-105 hover:shadow-xl">
-                  {{ banners[currentBanner].action }}
+                  {{ banners[currentBanner]?.action }}
                 </button>
               </div>
             </div>
@@ -54,12 +54,13 @@
             v-for="category in categories"
             :key="category.id"
             class="bg-white rounded-2xl p-4 flex flex-col items-center justify-center gap-3 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:-translate-y-1 cursor-pointer border-2 border-transparent hover:border-[#09f] group"
+            @click="handleSearch(category.name)"
           >
-            <div class="w-16 h-16 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:scale-110">
+            <div class="bg-none w-16 h-16 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:scale-110">
               <img 
                 :src="category.img" 
                 :alt="category.name"
-                class="w-12 h-12 object-contain"
+                class="w-16 h-16 object-contain "
               />
             </div>
             <span class="text-xs text-center text-gray-700 font-medium group-hover:text-[#09f] transition-colors duration-200">
@@ -90,7 +91,7 @@
             class="bg-white border-2 border-gray-100 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105 hover:-translate-y-1 hover:border-[#09f] group cursor-pointer"
           >
             <!-- Product Image -->
-            <div class="relative aspect-square bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center overflow-hidden p-6">
+            <div class=" relative aspect-square bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center overflow-hidden p-6">
               <img 
                 :src="product.img" 
                 :alt="product.name"
@@ -157,26 +158,26 @@ const banners = [
 ]
 
 const categories = [
-  { id: 1, name: 'Arduino', img: '/images/Edunera_Logo_512.png' },
-  { id: 2, name: 'ESP32', img: '/images/Edunera_Logo_512.png' },
-  { id: 3, name: 'Raspberry Pi', img: '/images/Edunera_Logo_512.png' },
-  { id: 4, name: 'IC 74LS', img: '/images/Edunera_Logo_512.png' },
-  { id: 5, name: 'LED', img: '/images/Edunera_Logo_512.png' },
-  { id: 6, name: 'Điện trở', img: '/images/Edunera_Logo_512.png' },
-  { id: 7, name: 'Tụ điện', img: '/images/Edunera_Logo_512.png' },
-  { id: 8, name: 'Transistor', img: '/images/Edunera_Logo_512.png' },
-  { id: 9, name: 'Cảm biến', img: '/images/Edunera_Logo_512.png' },
-  { id: 10, name: 'Motor', img: '/images/Edunera_Logo_512.png' },
-  { id: 11, name: 'Relay', img: '/images/Edunera_Logo_512.png' },
-  { id: 12, name: 'Biến trở', img: '/images/Edunera_Logo_512.png' },
-  { id: 13, name: 'Diode', img: '/images/Edunera_Logo_512.png' },
-  { id: 14, name: 'Module', img: '/images/Edunera_Logo_512.png' },
-  { id: 15, name: 'Màn hình', img: '/images/Edunera_Logo_512.png' },
-  { id: 16, name: 'Pin', img: '/images/Edunera_Logo_512.png' },
-  { id: 17, name: 'Dây cáp', img: '/images/Edunera_Logo_512.png' },
-  { id: 18, name: 'Công tắc', img: '/images/Edunera_Logo_512.png' },
-  { id: 19, name: 'Anten', img: '/images/Edunera_Logo_512.png' },
-  { id: 20, name: 'Khác', img: '/images/Edunera_Logo_512.png' }
+  { id: 1, name: 'Arduino', img: '/images/ArduinoUnoR3.jpg' },
+  { id: 2, name: 'ESP32', img: '/images/nodemcu-esp32-01.webp' },
+  { id: 3, name: 'Raspberry Pi', img: '/images/raspberry-pi-5-6.jpg' },
+  { id: 4, name: 'IC 74LS', img: '/images/ic-logic-74ls90-dip14-1.webp' },
+  { id: 5, name: 'LED', img: '/images/images.jpg' },
+  { id: 6, name: 'Điện trở', img: '/images/resistores.jpg' },
+  { id: 7, name: 'Tụ điện', img: '/images/tụ-35-2200uf.jpg' },
+  { id: 8, name: 'Transistor', img: '/images/transistors.jpg' },
+  { id: 9, name: 'Cảm biến', img: '/images/cam-bien-vat-can-hong-ngoai-fm52-5.jpg' },
+  { id: 10, name: 'Servo', img: '/images/dong-co-servo-sg90-180-do-rk7a-1.jpg' },
+  { id: 11, name: 'Relay', img: '/images/Relay.jpg' },
+  { id: 12, name: 'Biến trở', img: '/images/triet-ap-don-3.webp' },
+  { id: 13, name: 'Diode', img: '/images/untitled-f7c33075-a4af-4388-a803-367053588b86.webp' },
+  { id: 14, name: 'Module', img: '/images/61GYgJyVv5L.jpg' },
+  { id: 15, name: 'Màn hình', img: '/images/man-hinh-lcd-oled-0-96-inch-giao-tiep-i2c-white-9w56-1.jpg' },
+  { id: 16, name: 'Pin', img: '/images/pin-18650__T7hrNFf7Uz.webp' },
+  { id: 17, name: 'Dây cáp', img: '/images/jumper.jpg' },
+  { id: 18, name: 'Công tắc', img: '/images/600f3e230bb348db1410904d6e91ba75.webp' },
+  { id: 19, name: 'Thiết bị hàn', img: '/images/mo-han-dieu-chinh-nhiet-do-936-60w-kem-5-mui-han-8a0q-1-1024x1024.jpg' },
+  { id: 20, name: 'Khác', img: '/images/pngtree-ellipsis-black-glyph-ui-icon-flat-negative-space-ellipsis-vector-png-image_48303394.jpg' }
 ]
 
 const saleProducts = [
@@ -263,7 +264,7 @@ const saleProducts = [
 ]
 
 const currentBanner = ref(0)
-let bannerInterval: NodeJS.Timeout
+let bannerInterval: ReturnType<typeof setInterval>
 
 onMounted(() => {
   // Auto slide banner every 8 seconds
@@ -283,5 +284,10 @@ const formatPrice = (price: number) => {
     style: 'currency',
     currency: 'VND'
   }).format(price)
+}
+const handleSearch = (categoryName: string) => {
+  if (categoryName?.trim()) {
+    navigateTo(`/search?q=${encodeURIComponent(categoryName)}`)
+  }
 }
 </script>
