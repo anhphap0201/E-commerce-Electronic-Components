@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: E-commerce-Electronic-Components-Backend
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/test_api
+    username: postgres
+    password: 123456
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+jwt:
+  secret-key: 6af834a092761d5d394cf5a1feac20b4e025ce29b09fe355a3b40971b0860095
