@@ -41,6 +41,8 @@ public class JwtService {
                 .issueTime(issueTime)
                 .expirationTime(expirationTime)
                 .jwtID(jwtId)
+                .claim("role", user.getRole().name())
+                .claim("scope", user.getRole().name())
                 .build();
 
         //payload
