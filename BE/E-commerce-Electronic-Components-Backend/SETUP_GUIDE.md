@@ -30,9 +30,9 @@
 
 4. **(Optional) Insert dữ liệu mẫu**
    - Kết nối vào PostgreSQL
-   - Chạy script trong file `sample-data.sql`
+   - Chạy script trong file `sql.sql`
    ```bash
-   psql -U postgres -d test_api -f sample-data.sql
+   psql -U postgres -d test_api -f sql.sql
    ```
 
 ### Redis

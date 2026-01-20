@@ -195,3 +195,4 @@ FE/playwright/.cache/
 # Backup files
 *.bak
 *.backup
+*.env
