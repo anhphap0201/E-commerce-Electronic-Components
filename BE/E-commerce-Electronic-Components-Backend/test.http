@@ -1,0 +1,122 @@
+### ===== CATEGORY MANAGEMENT =====
+
+### 1. CREATE Category
+POST http://localhost:8080/api/categories
+Content-Type: application/json
+
+{
+  "name": "Bộ vi xử lý",
+  "description": "CPU và Processor"
+}
+
+### 2. GET All Categories
+GET http://localhost:8080/api/categories
+
+### 3. GET Category by ID
+GET http://localhost:8080/api/categories/1
+
+### 4. GET Category by Name
+GET http://localhost:8080/api/categories/search/Bộ%20vi%20xử%20lý
+
+### 5. UPDATE Category
+PUT http://localhost:8080/api/categories/1
+Content-Type: application/json
+
+{
+  "name": "Bộ vi xử lý (Updated)",
+  "description": "CPU và Processor - Updated"
+}
+
+### 6. DELETE Category
+DELETE http://localhost:8080/api/categories/1
+
+### ===== PRODUCT MANAGEMENT =====
+
+### 7. CREATE Product
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "Intel Core i7",
+  "sku": "CPU001",
+  "description": "Bộ xử lý Intel thế hệ 13",
+  "price": 15000000,
+  "category": {"id": 1}
+}
+
+### 8. GET All Products
+GET http://localhost:8080/api/products
+
+### 9. GET Product by ID
+GET http://localhost:8080/api/products/1
+
+### 10. GET Product by SKU
+GET http://localhost:8080/api/products/sku/CPU001
+
+### 11. GET Products by Category
+GET http://localhost:8080/api/products/category/1
+
+### 12. UPDATE Product
+PUT http://localhost:8080/api/products/1
+Content-Type: application/json
+
+{
+  "name": "Intel Core i9",
+  "sku": "CPU001",
+  "description": "Bộ xử lý Intel thế hệ 13 - Updated",
+  "price": 20000000,
+  "category": {"id": 1}
+}
+
+### 13. DELETE Product
+DELETE http://localhost:8080/api/products/1
+
+### ===== INVENTORY MANAGEMENT =====
+
+### 14. CREATE Inventory
+POST http://localhost:8080/api/inventory
+Content-Type: application/json
+
+{
+  "product": {"id": 1},
+  "quantity": 50,
+  "minQuantity": 10,
+  "warehouse": "Kho 1 - Hà Nội"
+}
+
+### 15. GET All Inventory
+GET http://localhost:8080/api/inventory
+
+### 16. GET Inventory by ID
+GET http://localhost:8080/api/inventory/1
+
+### 17. GET Inventory by Product ID
+GET http://localhost:8080/api/inventory/product/1
+
+### 18. GET Inventory by Warehouse
+GET http://localhost:8080/api/inventory/warehouse/Kho%201%20-%20Hà%20Nội
+
+### 19. UPDATE Inventory
+PUT http://localhost:8080/api/inventory/1
+Content-Type: application/json
+
+{
+  "product": {"id": 1},
+  "quantity": 100,
+  "minQuantity": 15,
+  "warehouse": "Kho 2 - TP HCM"
+}
+
+### 20. UPDATE Inventory Quantity Only
+PATCH http://localhost:8080/api/inventory/1/quantity?quantity=75
+
+### 21. CHECK Low Stock
+GET http://localhost:8080/api/inventory/1/low-stock
+
+### 22. DELETE Inventory
+DELETE http://localhost:8080/api/inventory/1
+
+### ===== H2 DATABASE CONSOLE =====
+### Truy cập tại: http://localhost:8080/h2-console
+### Username: sa
+### Password: (bỏ trống)
