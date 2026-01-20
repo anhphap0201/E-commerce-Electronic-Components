@@ -146,9 +146,10 @@
 
           <!-- Products List -->
           <div v-if="sortedProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-            <div
+            <NuxtLink
               v-for="product in paginatedProducts"
               :key="product.id"
+              :to="`/products/${product.id}`"
               class="bg-white border-2 border-gray-100 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105 hover:-translate-y-1 hover:border-[#09f] group cursor-pointer"
             >
               <!-- Product Image -->
@@ -186,15 +187,15 @@
 
                 <!-- Actions -->
                 <div class="flex gap-2">
-                  <button class="flex-1 bg-[#09f] text-white py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-[#0077cc] hover:shadow-lg active:scale-95">
+                  <button @click.prevent="buyNow(product.id)" class="flex-1 bg-[#09f] text-white py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-[#0077cc] hover:shadow-lg active:scale-95">
                     Mua ngay
                   </button>
-                  <button class="w-10 h-10 border-2 border-gray-200 rounded-xl flex items-center justify-center transition-all duration-300 hover:border-[#09f] hover:text-[#09f] hover:scale-105 active:scale-95">
+                  <button @click.prevent="addToCart(product.id)" class="w-10 h-10 border-2 border-gray-200 rounded-xl flex items-center justify-center transition-all duration-300 hover:border-[#09f] hover:text-[#09f] hover:scale-105 active:scale-95">
                     🛒
                   </button>
                 </div>
               </div>
-            </div>
+            </NuxtLink>
           </div>
 
           <!-- Empty State -->
@@ -585,6 +586,16 @@ const formatPrice = (price: number) => {
     style: 'currency',
     currency: 'VND'
   }).format(price)
+}
+
+const buyNow = (productId: number) => {
+  // Implement buy now functionality
+  alert(`Mua ngay sản phẩm ${productId}`)
+}
+
+const addToCart = (productId: number) => {
+  // Implement add to cart functionality
+  alert(`Đã thêm sản phẩm ${productId} vào giỏ hàng`)
 }
 
 // Reset page when filters change
