@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Dashboard</h2>
+
+    <h3>Add Product</h3>
+    <input id="name" placeholder="Product name">
+    <input id="price" placeholder="Price">
+
+    <button onclick="addProduct()">Add Product</button>
+
+    <button class="logout" onclick="logout()">Logout</button>
+</div>
+
+<script>
+    const accessToken = localStorage.getItem("access_token");
+    if (!accessToken) {
+        window.location.href = "login.html";
+    }
+
+    async function addProduct() {
+        const name = document.getElementById("name").value;
+        const price = document.getElementById("price").value;
+
+        const res = await fetch("http://localhost:8080/products", {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + accessToken,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ name, price })
+        });
+
+        if (res.ok) {
+            alert("Add product success");
+        } else if (res.status === 401) {
+            alert("Unauthorized");
+        }
+    }
+
+    async function logout() {
+        const res = await fetch("http://localhost:8080/auth/logout", {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + accessToken
+            },
+            credentials: "include"
+        });
+
+        localStorage.removeItem("access_token");
+        window.location.href = "login.html";
+    }
+</script>
+
+</body>
+</html>
