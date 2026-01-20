@@ -1,8 +1,7 @@
 package com.example.ecommerceelectroniccomponentsbackend.repository;
 
-import com.example.ecommerceelectroniccomponentsbackend.model.Product;
+import com.example.ecommerceelectroniccomponentsbackend.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository

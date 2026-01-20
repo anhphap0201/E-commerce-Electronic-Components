@@ -5,6 +5,7 @@ import com.example.ecommerceelectroniccomponentsbackend.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class CategoryController {
     
     // CREATE - POST /api/categories
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createCategory(@RequestBody Category category) {
         try {
             if (categoryService.existsByName(category.getName())) {
@@ -43,6 +45,7 @@ public class CategoryController {
     
     // READ BY ID - GET /api/categories/{id}
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getCategoryById(@PathVariable Long id) {
         Optional<Category> category = categoryService.getCategoryById(id);
         if (category.isPresent()) {
@@ -65,6 +68,7 @@ public class CategoryController {
     
     // UPDATE - PUT /api/categories/{id}
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateCategory(@PathVariable Long id, @RequestBody Category updatedCategory) {
         try {
             Optional<Category> updated = categoryService.updateCategory(id, updatedCategory);
@@ -81,6 +85,7 @@ public class CategoryController {
     
     // DELETE - DELETE /api/categories/{id}
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
         try {
             if (categoryService.deleteCategory(id)) {

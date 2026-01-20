@@ -5,6 +5,7 @@ import com.example.ecommerceelectroniccomponentsbackend.service.InventoryService
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class InventoryController {
     
     // CREATE - POST /api/inventory
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createInventory(@RequestBody Inventory inventory) {
         try {
             Inventory created = inventoryService.createInventory(inventory);
@@ -72,6 +74,7 @@ public class InventoryController {
     
     // UPDATE - PUT /api/inventory/{id}
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateInventory(@PathVariable Long id, @RequestBody Inventory updatedInventory) {
         try {
             Optional<Inventory> updated = inventoryService.updateInventory(id, updatedInventory);
@@ -88,6 +91,7 @@ public class InventoryController {
     
     // UPDATE QUANTITY ONLY - PATCH /api/inventory/{id}/quantity
     @PatchMapping("/{id}/quantity")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateQuantity(@PathVariable Long id, @RequestParam Integer quantity) {
         try {
             Optional<Inventory> updated = inventoryService.updateQuantity(id, quantity);
@@ -114,6 +118,7 @@ public class InventoryController {
     
     // DELETE - DELETE /api/inventory/{id}
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteInventory(@PathVariable Long id) {
         try {
             if (inventoryService.deleteInventory(id)) {
