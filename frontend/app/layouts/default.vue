@@ -36,8 +36,27 @@
             </div>
           </div>
 
-          <!-- Auth Buttons -->
+          <!-- Cart & Auth -->
           <div class="flex items-center gap-3 flex-shrink-0">
+            <!-- Cart Icon -->
+            <NuxtLink 
+              to="/cart" 
+              class="relative group"
+            >
+              <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center transition-all duration-300 group-hover:bg-[#09f] group-hover:scale-105">
+                <svg class="w-5 h-5 text-gray-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <!-- Cart Badge -->
+              <span 
+                v-if="cartItemCount > 0"
+                class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white"
+              >
+                {{ cartItemCount > 9 ? '9+' : cartItemCount }}
+              </span>
+            </NuxtLink>
+
             <NuxtLink 
               to="/auth/auth" 
               class="px-4 py-2 text-sm font-medium text-[#09f] hover:text-[#0077cc] transition-colors duration-200 whitespace-nowrap"
@@ -150,9 +169,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const searchQuery = ref('')
+
+// Mock cart item count - replace with actual cart state management
+const cartItemCount = computed(() => {
+  // This should be replaced with actual cart data from store (Vuex/Pinia)
+  // For now, return a mock value
+  return 3
+})
 
 const popularKeywords = [
   'Arduino',
