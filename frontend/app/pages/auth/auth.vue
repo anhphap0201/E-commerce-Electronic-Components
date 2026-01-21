@@ -122,21 +122,6 @@
             leave-to-class="opacity-0 translate-x-[100%]"
           >
             <form v-if="activeTab === 'register'" @submit.prevent="handleRegister" class="space-y-3.5">
-              <!-- Full Name -->
-              <div>
-                <label for="fullName" class="block text-xs font-medium text-gray-700 mb-1.5">
-                  Họ và tên
-                </label>
-                <input
-                  id="fullName"
-                  v-model="registerData.fullName"
-                  type="text"
-                  required
-                  class="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm transition-all duration-300 outline-none focus:border-[#09f] focus:shadow-[0_0_0_3px_rgba(0,153,255,0.1)] hover:border-[#33adff] placeholder:text-gray-400"
-                  placeholder="Nhập họ và tên"
-                />
-              </div>
-
               <!-- Email -->
               <div>
                 <label for="email" class="block text-xs font-medium text-gray-700 mb-1.5">
@@ -198,10 +183,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { f } from 'vue-router/dist/router-CWoNjPRp.mjs'
+import { ref, nextTick } from 'vue'
+import { useNotification } from '~/composables/useNotification'
+import { useAuth } from '~/composables/useAuth'
 
 const activeTab = ref<'login' | 'register'>('login')
+const { success, error } = useNotification()
+const { login } = useAuth()
 
 const loginData = ref({
   email: '',
@@ -210,34 +198,59 @@ const loginData = ref({
 })
 
 const registerData = ref({
-  fullName: '',
   email: '',
   password: '',
   confirmPassword: ''
 })
 
-const handleLogin = () => {
-  // Handle login logic here
-  console.log('Login data:', loginData.value)
-  // TODO: Call API to login user
+const handleLogin = async () => {
+  try {
+    const data = await $fetch('http://localhost:8080/auth/login', {
+      method: 'POST',
+      body: {
+        email: loginData.value.email,
+        password: loginData.value.password
+      }
+    })
+
+    // API returns accessToken and refreshToken
+    login({ email: loginData.value.email }, data.accessToken)
+    success('Đăng nhập thành công!', 'Chào mừng bạn quay trở lại')
+    
+    // Wait for UI to update before navigating
+    await nextTick()
+    setTimeout(() => navigateTo('/'), 300)
+  } catch (err: any) {
+    error(
+      'Đăng nhập thất bại',
+      err.data?.message || err.message || 'Email hoặc mật khẩu không đúng'
+    )
+  }
 }
 
-const handleForgotPassword = () => {
-  // Handle forgot password logic here
-  console.log('Forgot password clicked')
-  // TODO: Navigate to forgot password page or show modal
-
-}
-
-const handleRegister = () => {
-  // Validate passwords match
+const handleRegister = async () => {
   if (registerData.value.password !== registerData.value.confirmPassword) {
-    alert('Mật khẩu không khớp!')
-    return
+    return error('Mật khẩu không khớp!', 'Vui lòng nhập lại mật khẩu xác nhận')
   }
 
-  // Handle registration logic here
-  console.log('Register data:', registerData.value)
-  // TODO: Call API to register user
+  try {
+    await $fetch('http://localhost:8080/auth/register', {
+      method: 'POST',
+      body: {
+        email: registerData.value.email,
+        password: registerData.value.password,
+        role: 'ROLE_USER'
+      }
+    })
+
+    success('Đăng ký thành công!', 'Bạn có thể đăng nhập ngay bây giờ')
+    activeTab.value = 'login'
+    registerData.value = { email: '', password: '', confirmPassword: '' }
+  } catch (err: any) {
+    error(
+      'Đăng ký thất bại',
+      err.data?.message || err.message || 'Đã có lỗi xảy ra'
+    )
+  }
 }
 </script>

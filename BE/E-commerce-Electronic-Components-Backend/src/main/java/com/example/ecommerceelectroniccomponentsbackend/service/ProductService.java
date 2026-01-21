@@ -1,12 +1,10 @@
 package com.example.ecommerceelectroniccomponentsbackend.service;
 
-import com.example.ecommerceelectroniccomponentsbackend.model.Product;
+import com.example.ecommerceelectroniccomponentsbackend.entity.Product;
 import com.example.ecommerceelectroniccomponentsbackend.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,9 +19,7 @@ public class ProductService {
     }
 
     public List<Product> findAll(){
-        List<Product> productList = new ArrayList<>();
-        productRepository.findAll().forEach(productList::add);
-        return productList;
+        return productRepository.findAll();
     }
 
     public Product updateProductById(long id,
@@ -36,8 +32,12 @@ public class ProductService {
             Product updatedProduct
                     = existingProduct.get();
 
-            updatedProduct.setProductName(newProduct.getProductName());
+            updatedProduct.setName(newProduct.getName());
             updatedProduct.setPrice(newProduct.getPrice());
+            updatedProduct.setDescription(newProduct.getDescription());
+            updatedProduct.setSku(newProduct.getSku());
+            updatedProduct.setCategory(newProduct.getCategory());
+            updatedProduct.setUpdatedAt(System.currentTimeMillis());
             return productRepository.save(updatedProduct);
         }
         return null;

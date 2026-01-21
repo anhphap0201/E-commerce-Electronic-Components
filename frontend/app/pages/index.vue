@@ -58,7 +58,7 @@
           >
             <div class="bg-none w-16 h-16 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:scale-110">
               <img 
-                :src="category.img" 
+                :src="getCategoryImage(category)" 
                 :alt="category.name"
                 class="w-16 h-16 object-contain "
               />
@@ -85,9 +85,10 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          <div
+          <NuxtLink
             v-for="product in saleProducts"
             :key="product.id"
+            :to="`/products/${product.id}`"
             class="bg-white border-2 border-gray-100 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105 hover:-translate-y-1 hover:border-[#09f] group cursor-pointer"
           >
             <!-- Product Image -->
@@ -121,15 +122,15 @@
 
               <!-- Actions -->
               <div class="flex gap-2">
-                <button class="flex-1 bg-[#09f] text-white py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-[#0077cc] hover:shadow-lg active:scale-95">
+                <button @click.prevent="buyNow(product.id)" class="flex-1 bg-[#09f] text-white py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-[#0077cc] hover:shadow-lg active:scale-95">
                   Mua ngay
                 </button>
-                <button class="w-10 h-10 border-2 border-gray-200 rounded-xl flex items-center justify-center transition-all duration-300 hover:border-[#09f] hover:text-[#09f] hover:scale-105 active:scale-95">
+                <button @click.prevent="addToCart(product.id)" class="w-10 h-10 border-2 border-gray-200 rounded-xl flex items-center justify-center transition-all duration-300 hover:border-[#09f] hover:text-[#09f] hover:scale-105 active:scale-95">
                   🛒
                 </button>
               </div>
             </div>
-          </div>
+          </NuxtLink>
         </div>
       </div>
     </section>
@@ -157,28 +158,25 @@ const banners = [
   }
 ]
 
-const categories = [
-  { id: 1, name: 'Arduino', img: '/images/ArduinoUnoR3.jpg' },
-  { id: 2, name: 'ESP32', img: '/images/nodemcu-esp32-01.webp' },
-  { id: 3, name: 'Raspberry Pi', img: '/images/raspberry-pi-5-6.jpg' },
-  { id: 4, name: 'IC 74LS', img: '/images/ic-logic-74ls90-dip14-1.webp' },
-  { id: 5, name: 'LED', img: '/images/images.jpg' },
-  { id: 6, name: 'Điện trở', img: '/images/resistores.jpg' },
-  { id: 7, name: 'Tụ điện', img: '/images/tụ-35-2200uf.jpg' },
-  { id: 8, name: 'Transistor', img: '/images/transistors.jpg' },
-  { id: 9, name: 'Cảm biến', img: '/images/cam-bien-vat-can-hong-ngoai-fm52-5.jpg' },
-  { id: 10, name: 'Servo', img: '/images/dong-co-servo-sg90-180-do-rk7a-1.jpg' },
-  { id: 11, name: 'Relay', img: '/images/Relay.jpg' },
-  { id: 12, name: 'Biến trở', img: '/images/triet-ap-don-3.webp' },
-  { id: 13, name: 'Diode', img: '/images/untitled-f7c33075-a4af-4388-a803-367053588b86.webp' },
-  { id: 14, name: 'Module', img: '/images/61GYgJyVv5L.jpg' },
-  { id: 15, name: 'Màn hình', img: '/images/man-hinh-lcd-oled-0-96-inch-giao-tiep-i2c-white-9w56-1.jpg' },
-  { id: 16, name: 'Pin', img: '/images/pin-18650__T7hrNFf7Uz.webp' },
-  { id: 17, name: 'Dây cáp', img: '/images/jumper.jpg' },
-  { id: 18, name: 'Công tắc', img: '/images/600f3e230bb348db1410904d6e91ba75.webp' },
-  { id: 19, name: 'Thiết bị hàn', img: '/images/mo-han-dieu-chinh-nhiet-do-936-60w-kem-5-mui-han-8a0q-1-1024x1024.jpg' },
-  { id: 20, name: 'Khác', img: '/images/pngtree-ellipsis-black-glyph-ui-icon-flat-negative-space-ellipsis-vector-png-image_48303394.jpg' }
-]
+// Fetch categories from API
+const categories = ref<any[]>([])
+
+// Default images for categories
+const categoryImages: Record<string, string> = {
+  'Arduino & Modules': '/images/ArduinoUnoR3.jpg',
+  'Raspberry Pi': '/images/raspberry-pi-5-6.jpg',
+  'Linh kiện điện tử': '/images/resistores.jpg',
+  'Cảm biến': '/images/cam-bien-vat-can-hong-ngoai-fm52-5.jpg',
+  'Module nguồn': '/images/61GYgJyVv5L.jpg',
+  'Module truyền thông': '/images/nodemcu-esp32-01.webp',
+  'Màn hình hiển thị': '/images/man-hinh-lcd-oled-0-96-inch-giao-tiep-i2c-white-9w56-1.jpg',
+  'Motor & Driver': '/images/dong-co-servo-sg90-180-do-rk7a-1.jpg',
+  'default': '/images/pngtree-ellipsis-black-glyph-ui-icon-flat-negative-space-ellipsis-vector-png-image_48303394.jpg'
+}
+
+const getCategoryImage = (category: any) => {
+  return category.imageUrl || categoryImages[category.name] || categoryImages['default']
+}
 
 const saleProducts = [
   {
@@ -266,11 +264,19 @@ const saleProducts = [
 const currentBanner = ref(0)
 let bannerInterval: ReturnType<typeof setInterval>
 
-onMounted(() => {
+onMounted(async () => {
   // Auto slide banner every 8 seconds
   bannerInterval = setInterval(() => {
     currentBanner.value = (currentBanner.value + 1) % banners.length
   }, 8000)
+
+  // Fetch categories from API
+  try {
+    const data = await $fetch('http://localhost:8080/api/categories')
+    categories.value = data as any[]
+  } catch (error) {
+    console.error('Error fetching categories:', error)
+  }
 })
 
 onUnmounted(() => {
@@ -289,5 +295,15 @@ const handleSearch = (categoryName: string) => {
   if (categoryName?.trim()) {
     navigateTo(`/search?q=${encodeURIComponent(categoryName)}`)
   }
+}
+
+const buyNow = (productId: number) => {
+  // Implement buy now functionality
+  alert(`Mua ngay sản phẩm ${productId}`)
+}
+
+const addToCart = (productId: number) => {
+  // Implement add to cart functionality
+  alert(`Đã thêm sản phẩm ${productId} vào giỏ hàng`)
 }
 </script>

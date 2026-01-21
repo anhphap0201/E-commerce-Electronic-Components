@@ -1,12 +1,11 @@
 package com.example.ecommerceelectroniccomponentsbackend.controller;
 
-import com.example.ecommerceelectroniccomponentsbackend.model.Product;
+import com.example.ecommerceelectroniccomponentsbackend.entity.Product;
 import com.example.ecommerceelectroniccomponentsbackend.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
