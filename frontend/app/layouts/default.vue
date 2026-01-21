@@ -1,5 +1,8 @@
 <template>
   <div class="flex flex-col min-h-screen">
+    <!-- Notification Container -->
+    <NotificationContainer />
+    
     <!-- Header -->
     <header class="border-b border-gray-200 sticky top-0 z-50 backdrop-blur-sm bg-white/95">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -57,12 +60,91 @@
               </span>
             </NuxtLink>
 
-            <NuxtLink 
-              to="/auth/auth" 
-              class="px-4 py-2 text-sm font-medium text-[#09f] hover:text-[#0077cc] transition-colors duration-200 whitespace-nowrap"
-            >
-              Đăng nhập
-            </NuxtLink>
+            <!-- User Menu or Login Button -->
+            <ClientOnly>
+              <template #fallback>
+                <NuxtLink
+                  to="/auth/auth" 
+                  class="px-4 py-2 text-sm font-medium text-[#09f] hover:text-[#0077cc] transition-colors duration-200 whitespace-nowrap"
+                >
+                  Đăng nhập
+                </NuxtLink>
+              </template>
+              
+              <div v-if="isLoggedIn" class="relative">
+                <button
+                  @click="showUserMenu = !showUserMenu"
+                  class="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-all duration-200"
+                >
+                  <div class="w-8 h-8 rounded-full bg-[#09f] flex items-center justify-center text-white font-semibold text-sm">
+                    {{ user?.email?.charAt(0).toUpperCase() }}
+                  </div>
+                  <span class="text-sm font-medium text-gray-700 hidden md:block max-w-[150px] truncate">
+                    {{ user?.email }}
+                  </span>
+                  <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <Transition
+                  enter-active-class="transition-all duration-200 ease-out"
+                  leave-active-class="transition-all duration-150 ease-in"
+                  enter-from-class="opacity-0 scale-95 translate-y-[-10px]"
+                  enter-to-class="opacity-100 scale-100 translate-y-0"
+                  leave-from-class="opacity-100 scale-100 translate-y-0"
+                  leave-to-class="opacity-0 scale-95 translate-y-[-10px]"
+                >
+                  <div
+                    v-if="showUserMenu"
+                    class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50"
+                  >
+                    <div class="px-4 py-2 border-b border-gray-100">
+                      <p class="text-xs text-gray-500">Đăng nhập với</p>
+                      <p class="text-sm font-medium text-gray-800 truncate">{{ user?.email }}</p>
+                    </div>
+                    <NuxtLink
+                      to="/profile"
+                      class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      @click="showUserMenu = false"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Tài khoản của tôi
+                    </NuxtLink>
+                    <NuxtLink
+                      to="/orders"
+                      class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      @click="showUserMenu = false"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                      Đơn hàng của tôi
+                    </NuxtLink>
+                    <button
+                      @click="handleLogout"
+                      class="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Đăng xuất
+                    </button>
+                  </div>
+                </Transition>
+              </div>
+
+              <NuxtLink
+                v-else
+                to="/auth/auth" 
+                class="px-4 py-2 text-sm font-medium text-[#09f] hover:text-[#0077cc] transition-colors duration-200 whitespace-nowrap"
+              >
+                Đăng nhập
+              </NuxtLink>
+            </ClientOnly>
           </div>
         </div>
 
@@ -169,9 +251,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useAuth } from '~/composables/useAuth'
+import { useNotification } from '~/composables/useNotification'
 
 const searchQuery = ref('')
+const showUserMenu = ref(false)
+
+const { user, isAuthenticated, logout, initializeAuth } = useAuth()
+const { success } = useNotification()
+
+// Force initialize on mount
+onMounted(() => {
+  initializeAuth()
+})
+
+const isLoggedIn = computed(() => isAuthenticated.value)
+
+const handleLogout = () => {
+  logout()
+  showUserMenu.value = false
+  success('Đăng xuất thành công', 'Hẹn gặp lại bạn!')
+  navigateTo('/')
+}
 
 // Mock cart item count - replace with actual cart state management
 const cartItemCount = computed(() => {
