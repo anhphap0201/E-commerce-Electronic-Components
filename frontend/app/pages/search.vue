@@ -274,28 +274,8 @@ const sortBy = ref('relevant')
 const currentPage = ref(1)
 const itemsPerPage = 12
 
-const categories = [
-  { id: 1, name: 'Arduino' },
-  { id: 2, name: 'ESP32' },
-  { id: 3, name: 'Raspberry Pi' },
-  { id: 4, name: 'IC 74LS' },
-  { id: 5, name: 'LED' },
-  { id: 6, name: 'Điện trở' },
-  { id: 7, name: 'Tụ điện' },
-  { id: 8, name: 'Transistor' },
-  { id: 9, name: 'Cảm biến' },
-  { id: 10, name: 'Motor' },
-  { id: 11, name: 'Relay' },
-  { id: 12, name: 'Biến trở' },
-  { id: 13, name: 'Diode' },
-  { id: 14, name: 'Module' },
-  { id: 15, name: 'Màn hình' },
-  { id: 16, name: 'Pin' },
-  { id: 17, name: 'Dây cáp' },
-  { id: 18, name: 'Công tắc' },
-  { id: 19, name: 'Anten' },
-  { id: 20, name: 'Khác' }
-]
+// Fetch categories from API
+const categories = ref<any[]>([])
 
 const priceRanges = [
   { id: '0-100k', label: 'Dưới 100.000đ', min: 0, max: 100000 },
@@ -607,5 +587,15 @@ watch([selectedCategory, selectedPriceRange, onlyShowSale, sortBy], () => {
 watch(() => route.query.q, (newQuery) => {
   searchQuery.value = String(newQuery || '')
   currentPage.value = 1
+})
+
+// Fetch categories from API on mount
+onMounted(async () => {
+  try {
+    const data = await $fetch('http://localhost:8080/api/categories')
+    categories.value = data as any[]
+  } catch (error) {
+    console.error('Error fetching categories:', error)
+  }
 })
 </script>

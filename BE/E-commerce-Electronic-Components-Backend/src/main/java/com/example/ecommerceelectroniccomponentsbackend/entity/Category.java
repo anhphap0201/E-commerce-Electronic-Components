@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "categories")
 @Data
@@ -19,12 +21,29 @@ public class Category {
     @Column(nullable = false, unique = true)
     private String name;
     
+    @Column(name = "slug", unique = true)
+    private String slug;
+    
+    @Column(name = "image_url")
+    private String imageUrl;
+    
     @Column(length = 500)
     private String description;
     
-    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Long createdAt;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
     
-    @Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Long updatedAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

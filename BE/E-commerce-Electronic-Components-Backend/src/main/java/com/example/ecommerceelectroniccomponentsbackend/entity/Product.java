@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "products")
 @Data
@@ -20,21 +22,34 @@ public class Product {
     private String name;
     
     @Column(nullable = false, unique = true)
-    private String sku;
+    private String slug;
+    
+    @Column(name = "short_description")
+    private String shortDescription;
     
     @Column(length = 1000)
     private String description;
     
-    @Column(nullable = false)
-    private Double price;
+    @Column(name = "avg_rating")
+    private Double avgRating;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
+    @Column(name = "sold_quantity")
+    private Integer soldQuantity;
     
-    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Long createdAt;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
     
-    @Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Long updatedAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

@@ -43,7 +43,9 @@ public class SecurityConfig {
             "/auth/register",
 
             // public api
-            "/api/public"
+            "/api/public",
+            "/api/categories",
+            "/api/categories/**"
     };
 
     @Bean
