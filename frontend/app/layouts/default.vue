@@ -63,12 +63,8 @@
             <!-- User Menu or Login Button -->
             <ClientOnly>
               <template #fallback>
-                <NuxtLink
-                  to="/auth/auth" 
-                  class="px-4 py-2 text-sm font-medium text-[#09f] hover:text-[#0077cc] transition-colors duration-200 whitespace-nowrap"
-                >
-                  Đăng nhập
-                </NuxtLink>
+                <!-- Empty placeholder div with same height to prevent layout shift -->
+                <div class="h-10 w-24"></div>
               </template>
               
               <div v-if="isLoggedIn" class="relative">
@@ -77,10 +73,10 @@
                   class="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-all duration-200"
                 >
                   <div class="w-8 h-8 rounded-full bg-[#09f] flex items-center justify-center text-white font-semibold text-sm">
-                    {{ user?.email?.charAt(0).toUpperCase() }}
+                    {{ (user?.fullName || user?.email)?.charAt(0).toUpperCase() }}
                   </div>
                   <span class="text-sm font-medium text-gray-700 hidden md:block max-w-[150px] truncate">
-                    {{ user?.email }}
+                    {{ user?.fullName || user?.email }}
                   </span>
                   <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -101,8 +97,9 @@
                     class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50"
                   >
                     <div class="px-4 py-2 border-b border-gray-100">
-                      <p class="text-xs text-gray-500">Đăng nhập với</p>
-                      <p class="text-sm font-medium text-gray-800 truncate">{{ user?.email }}</p>
+                      <p class="text-xs text-gray-500">Xin chào</p>
+                      <p class="text-sm font-semibold text-gray-800 truncate">{{ user?.fullName || user?.email }}</p>
+                      <p v-if="user?.fullName" class="text-xs text-gray-500 truncate">{{ user?.email }}</p>
                     </div>
                     <NuxtLink
                       to="/profile"
@@ -208,13 +205,13 @@
                 <NuxtLink to="/" class="text-sm text-gray-600 hover:text-[#09f] transition-colors duration-200">Trang chủ</NuxtLink>
               </li>
               <li>
-                <NuxtLink to="/products" class="text-sm text-gray-600 hover:text-[#09f] transition-colors duration-200">Sản phẩm</NuxtLink>
+                <NuxtLink to="/search" class="text-sm text-gray-600 hover:text-[#09f] transition-colors duration-200">Tìm kiếm</NuxtLink>
               </li>
               <li>
-                <NuxtLink to="/about" class="text-sm text-gray-600 hover:text-[#09f] transition-colors duration-200">Về chúng tôi</NuxtLink>
+                <NuxtLink to="/cart" class="text-sm text-gray-600 hover:text-[#09f] transition-colors duration-200">Giỏ hàng</NuxtLink>
               </li>
               <li>
-                <NuxtLink to="/contact" class="text-sm text-gray-600 hover:text-[#09f] transition-colors duration-200">Liên hệ</NuxtLink>
+                <NuxtLink to="/profile" class="text-sm text-gray-600 hover:text-[#09f] transition-colors duration-200">Tài khoản</NuxtLink>
               </li>
             </ul>
           </div>

@@ -14,10 +14,11 @@
             <div class="flex flex-col items-center">
               <!-- Avatar -->
               <div class="w-24 h-24 rounded-full bg-gradient-to-br from-[#09f] to-[#0077cc] flex items-center justify-center text-white text-3xl font-bold mb-4">
-                {{ user?.email?.charAt(0).toUpperCase() }}
+                {{ (user?.fullName || user?.email)?.charAt(0).toUpperCase() }}
               </div>
-              <h2 class="text-xl font-semibold text-gray-900">{{ user?.email }}</h2>
-              <p class="text-sm text-gray-500 mt-1">{{ user?.role || 'CUSTOMER' }}</p>
+              <h2 class="text-xl font-semibold text-gray-900">{{ user?.fullName || user?.email }}</h2>
+              <p v-if="user?.fullName" class="text-sm text-gray-500 mt-1">{{ user?.email }}</p>
+              <p class="text-sm text-gray-500 mt-1">{{ user?.role === 'ROLE_ADMIN' ? 'Quản trị viên' : 'Khách hàng' }}</p>
             </div>
 
             <div class="mt-6 space-y-2">
@@ -65,6 +66,13 @@
             <h3 class="text-xl font-semibold text-gray-900 mb-6">Thông tin tài khoản</h3>
             
             <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Họ và tên</label>
+                <div class="px-4 py-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-700">
+                  {{ user?.fullName || 'Chưa cập nhật' }}
+                </div>
+              </div>
+
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
                 <div class="px-4 py-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-700">

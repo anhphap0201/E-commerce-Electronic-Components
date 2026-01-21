@@ -44,9 +44,6 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-2xl font-bold text-gray-800">Danh Mục Sản Phẩm</h2>
-          <NuxtLink to="/categories" class="text-[#09f] hover:text-[#0077cc] font-medium transition-colors duration-200">
-            Xem tất cả →
-          </NuxtLink>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-4">
@@ -79,9 +76,6 @@
             <h2 class="text-2xl font-bold text-gray-800">Sản Phẩm Đang Sale</h2>
             <p class="text-sm text-gray-500 mt-1">Giảm giá lên đến 50%</p>
           </div>
-          <NuxtLink to="/sale" class="text-[#09f] hover:text-[#0077cc] font-medium transition-colors duration-200">
-            Xem tất cả →
-          </NuxtLink>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">

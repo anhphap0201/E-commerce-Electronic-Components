@@ -122,6 +122,21 @@
             leave-to-class="opacity-0 translate-x-[100%]"
           >
             <form v-if="activeTab === 'register'" @submit.prevent="handleRegister" class="space-y-3.5">
+              <!-- Full Name -->
+              <div>
+                <label for="fullName" class="block text-xs font-medium text-gray-700 mb-1.5">
+                  Họ và tên
+                </label>
+                <input
+                  id="fullName"
+                  v-model="registerData.fullName"
+                  type="text"
+                  required
+                  class="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm transition-all duration-300 outline-none focus:border-[#09f] focus:shadow-[0_0_0_3px_rgba(0,153,255,0.1)] hover:border-[#33adff] placeholder:text-gray-400"
+                  placeholder="Nguyễn Văn A"
+                />
+              </div>
+
               <!-- Email -->
               <div>
                 <label for="email" class="block text-xs font-medium text-gray-700 mb-1.5">
@@ -187,6 +202,10 @@ import { ref, nextTick } from 'vue'
 import { useNotification } from '~/composables/useNotification'
 import { useAuth } from '~/composables/useAuth'
 
+definePageMeta({
+  middleware: 'guest'
+})
+
 const activeTab = ref<'login' | 'register'>('login')
 const { success, error } = useNotification()
 const { login } = useAuth()
@@ -198,6 +217,7 @@ const loginData = ref({
 })
 
 const registerData = ref({
+  fullName: '',
   email: '',
   password: '',
   confirmPassword: ''
@@ -213,8 +233,12 @@ const handleLogin = async () => {
       }
     })
 
-    // API returns accessToken and refreshToken
-    login({ email: loginData.value.email }, data.accessToken)
+    // API returns accessToken, refreshToken, email, fullName, role
+    login({ 
+      email: data.email, 
+      fullName: data.fullName,
+      role: data.role 
+    }, data.accessToken)
     success('Đăng nhập thành công!', 'Chào mừng bạn quay trở lại')
     
     // Wait for UI to update before navigating
@@ -223,7 +247,7 @@ const handleLogin = async () => {
   } catch (err: any) {
     error(
       'Đăng nhập thất bại',
-      err.data?.message || err.message || 'Email hoặc mật khẩu không đúng'
+      'Email hoặc mật khẩu không đúng'
     )
   }
 }
@@ -237,6 +261,7 @@ const handleRegister = async () => {
     await $fetch('http://localhost:8080/auth/register', {
       method: 'POST',
       body: {
+        fullName: registerData.value.fullName,
         email: registerData.value.email,
         password: registerData.value.password,
         role: 'ROLE_USER'
@@ -245,7 +270,7 @@ const handleRegister = async () => {
 
     success('Đăng ký thành công!', 'Bạn có thể đăng nhập ngay bây giờ')
     activeTab.value = 'login'
-    registerData.value = { email: '', password: '', confirmPassword: '' }
+    registerData.value = { fullName: '', email: '', password: '', confirmPassword: '' }
   } catch (err: any) {
     error(
       'Đăng ký thất bại',

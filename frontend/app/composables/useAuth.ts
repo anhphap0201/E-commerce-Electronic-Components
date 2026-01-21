@@ -2,6 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 
 interface User {
   email: string
+  fullName?: string
   role?: string
   [key: string]: any
 }
@@ -14,20 +15,16 @@ const isAuthenticated = computed(() => !!user.value && !!token.value)
 
 // Initialize function to be called on client
 const initializeAuth = () => {
-  console.log('🚀 initializeAuth called, isInitialized:', isInitialized.value, 'process.client:', process.client)
   if (isInitialized.value || !process.client) return
   
   isInitialized.value = true
   const storedToken = localStorage.getItem('token')
   const storedUser = localStorage.getItem('user')
   
-  console.log('📦 localStorage:', { storedToken, storedUser })
-  
   if (storedToken && storedUser) {
     try {
       token.value = storedToken
       user.value = JSON.parse(storedUser)
-      console.log('✅ Initialized from localStorage:', user.value, 'isAuth:', isAuthenticated.value)
     } catch (e) {
       console.error('Error parsing stored user:', e)
       localStorage.removeItem('token')
@@ -43,15 +40,12 @@ export const useAuth = () => {
   }
 
   const login = (userData: User, authToken: string) => {
-    console.log('🔐 LOGIN CALLED:', userData, authToken)
     user.value = userData
     token.value = authToken
-    console.log('✅ After login - user:', user.value, 'isAuth:', isAuthenticated.value)
     
     if (process.client) {
       localStorage.setItem('token', authToken)
       localStorage.setItem('user', JSON.stringify(userData))
-      console.log('💾 Saved to localStorage')
     }
   }
 

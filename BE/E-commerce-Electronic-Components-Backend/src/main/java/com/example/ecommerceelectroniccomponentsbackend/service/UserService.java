@@ -52,6 +52,7 @@ public class UserService {
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .fullName(request.getFullName())
                 .role(request.getRole() != null ? request.getRole() : Role.ROLE_USER)
                 .build();
 

@@ -52,6 +52,9 @@ public class AuthenticationService {
         return LoginResponse.builder()
                 .accessToken(accessPayload.getToken())
                 .refreshToken(refreshPayload.getToken())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .role(user.getRole())
                 .build();
     }
 

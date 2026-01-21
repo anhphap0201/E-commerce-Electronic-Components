@@ -191,20 +191,6 @@
             <!-- Payment Methods -->
             <div class="border-t border-gray-200 pt-4">
               <p class="text-sm text-gray-600 mb-3">Phương thức thanh toán:</p>
-              <div class="flex gap-2">
-                <div class="w-12 h-8 bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-xs font-semibold text-gray-600">
-                  VISA
-                </div>
-                <div class="w-12 h-8 bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-xs font-semibold text-gray-600">
-                  MC
-                </div>
-                <div class="w-12 h-8 bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-xs font-semibold text-gray-600">
-                  COD
-                </div>
-                <div class="w-12 h-8 bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-xs font-semibold text-gray-600">
-                  ATM
-                </div>
-              </div>
             </div>
 
             <!-- Security -->
