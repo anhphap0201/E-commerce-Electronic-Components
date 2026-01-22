@@ -15,5 +15,6 @@ spring:
     hibernate:
       ddl-auto: update
 
-jwt:
-  secret-key: 6af834a092761d5d394cf5a1feac20b4e025ce29b09fe355a3b40971b0860095
+app:
+  jwt:
+    secret-key: 6af834a092761d5d394cf5a1feac20b4e025ce29b09fe355a3b40971b0860095

@@ -25,7 +25,7 @@ import java.util.UUID;
 public class JwtService {
 
     private final BlacklistedTokenRepository blacklistedTokenRepository;
-    @Value("${jwt.secret-key}")
+    @Value("${app.jwt.secret-key}")
     private String secretKey;
 
     public TokenPayload generateAccessToken(User user) {

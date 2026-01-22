@@ -24,7 +24,7 @@ import java.util.Objects;
 public class JwtDecoderConfig implements JwtDecoder {
     private final JwtService jwtService;
     private NimbusJwtDecoder nimbusJwtDecoder = null;
-    @Value("${jwt.secret-key}")
+    @Value("${app.jwt.secret-key}")
     private String secretKey;
 
     @Override
