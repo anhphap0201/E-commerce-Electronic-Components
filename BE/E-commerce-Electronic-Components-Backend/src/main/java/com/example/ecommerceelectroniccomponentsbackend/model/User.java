@@ -8,7 +8,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -36,15 +35,6 @@ public class User implements UserDetails {
 
     @Column(name = "full_name")
     private String fullName;
-
-    @Column(length = 20)
-    private String phone;
-
-    @Column(length = 10)
-    private String gender;
-
-    @Column(name = "birth_date")
-    private LocalDate birthDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
