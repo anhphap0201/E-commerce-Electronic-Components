@@ -21,11 +21,11 @@ public class Inventory {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false, unique = true)
     private Product product;
-    
+
     @Column(nullable = false)
     private Integer quantity;
     
-    @Column(nullable = false)
+    @Column(name = "min_quantity", nullable = false)
     private Integer minQuantity;
     
     @Column(nullable = false)
@@ -33,7 +33,7 @@ public class Inventory {
     
     @Column(name = "last_updated")
     private LocalDateTime lastUpdated;
-    
+
     @PrePersist
     @PreUpdate
     protected void onUpdate() {

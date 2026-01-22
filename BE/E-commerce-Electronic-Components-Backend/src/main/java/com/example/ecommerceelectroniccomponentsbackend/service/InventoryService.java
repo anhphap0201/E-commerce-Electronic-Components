@@ -15,7 +15,6 @@ public class InventoryService {
     
     // Create
     public Inventory createInventory(Inventory inventory) {
-        inventory.setLastUpdated(System.currentTimeMillis());
         return inventoryRepository.save(inventory);
     }
     
@@ -45,7 +44,6 @@ public class InventoryService {
             inventory.setQuantity(updatedInventory.getQuantity());
             inventory.setMinQuantity(updatedInventory.getMinQuantity());
             inventory.setWarehouse(updatedInventory.getWarehouse());
-            inventory.setLastUpdated(System.currentTimeMillis());
             return inventoryRepository.save(inventory);
         });
     }
@@ -54,7 +52,6 @@ public class InventoryService {
     public Optional<Inventory> updateQuantity(Long id, Integer quantity) {
         return inventoryRepository.findById(id).map(inventory -> {
             inventory.setQuantity(quantity);
-            inventory.setLastUpdated(System.currentTimeMillis());
             return inventoryRepository.save(inventory);
         });
     }

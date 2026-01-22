@@ -23,19 +23,19 @@ public class Category {
     
     @Column(name = "slug", unique = true)
     private String slug;
-    
-    @Column(name = "image_url")
+
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
-    
-    @Column(length = 500)
+
+    @Column(columnDefinition = "TEXT")
     private String description;
     
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-    
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

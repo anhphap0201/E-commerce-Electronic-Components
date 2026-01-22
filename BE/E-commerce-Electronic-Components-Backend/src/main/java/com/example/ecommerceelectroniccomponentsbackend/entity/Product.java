@@ -23,25 +23,25 @@ public class Product {
     
     @Column(nullable = false, unique = true)
     private String slug;
-    
-    @Column(name = "short_description")
+
+    @Column(name = "short_description", columnDefinition = "TEXT")
     private String shortDescription;
-    
-    @Column(length = 1000)
+
+    @Column(columnDefinition = "TEXT")
     private String description;
     
     @Column(name = "avg_rating")
-    private Double avgRating;
-    
+    private Double avgRating = 0.0;
+
     @Column(name = "sold_quantity")
-    private Integer soldQuantity;
-    
-    @Column(name = "created_at")
+    private Integer soldQuantity = 0;
+
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-    
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

@@ -27,37 +27,15 @@ public class SecurityConfig {
     private final UserDetailServiceCustomizer userDetailsService;
     private final JwtDecoderConfig jwtDecoderConfig;
 
-    private static final String[] WHITE_LIST = {
-            "/",
-            "/index.html",
-
-            //swagger
-            "/v3/api-docs/**",
-            "/swagger-ui/**",
-            "/swagger-ui.html",
-            "/swagger-resources/**",
-            "/webjars/**",
-
-            // auth
-            "/auth/login",
-            "/auth/register",
-
-            // public api
-            "/api/public",
-            "/api/categories",
-            "/api/categories/**"
-    };
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configure(http))
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers(WHITE_LIST).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .oauth2ResourceServer((oauth2) -> oauth2
                         .jwt(jwtConfigurer -> jwtConfigurer
