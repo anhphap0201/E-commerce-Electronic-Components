@@ -171,25 +171,8 @@ public class ProductFilterService {
         return entityManager.createQuery(countQuery).getSingleResult();
     }
 
-    private Order createOrder(CriteriaBuilder cb, Root<Product> product, Join<Object, Object> variantsJoin,
-                              String sortBy, String sortDirection) {
-        boolean isAsc = "asc".equalsIgnoreCase(sortDirection);
-
-        return switch (sortBy.toLowerCase()) {
-            case "price" -> {
-                // Reuse existing join hoặc tạo mới nếu chưa có
-                Join<Object, Object> variants = variantsJoin != null ? variantsJoin
-                        : product.join("variants", JoinType.LEFT);
-                yield isAsc ? cb.asc(variants.get("price")) : cb.desc(variants.get("price"));
-            }
-            case "name" -> isAsc ? cb.asc(product.get("name")) : cb.desc(product.get("name"));
-            case "rating" -> isAsc ? cb.asc(product.get("avgRating")) : cb.desc(product.get("avgRating"));
-            case "soldquantity", "sold" ->
-                    isAsc ? cb.asc(product.get("soldQuantity")) : cb.desc(product.get("soldQuantity"));
-            case "createdat", "newest" -> isAsc ? cb.asc(product.get("createdAt")) : cb.desc(product.get("createdAt"));
-            default -> cb.desc(product.get("createdAt"));
-        };
-    }
+    // Note: createOrder method removed - not used in current implementation
+    // Sorting is handled through database query parameters
 
     @Transactional(readOnly = true)
     public Page<ProductWithVariantsDTO> filterByPriceRange(BigDecimal minPrice, BigDecimal maxPrice,
