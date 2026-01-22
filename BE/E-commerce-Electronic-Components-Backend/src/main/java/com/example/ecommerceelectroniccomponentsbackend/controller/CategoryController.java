@@ -45,7 +45,6 @@ public class CategoryController {
     
     // READ BY ID - GET /api/categories/{id}
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getCategoryById(@PathVariable Long id) {
         Optional<Category> category = categoryService.getCategoryById(id);
         if (category.isPresent()) {

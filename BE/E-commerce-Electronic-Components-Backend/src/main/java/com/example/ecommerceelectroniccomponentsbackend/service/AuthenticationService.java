@@ -38,7 +38,6 @@ public class AuthenticationService {
         User user = (User) authenticate.getPrincipal();
         TokenPayload accessPayload = jwtService.generateAccessToken(user);
         TokenPayload refreshPayload = jwtService.generateRefreshToken(user);
-
         long refreshTtl =
                 refreshPayload.getExpiredTime().getTime() - System.currentTimeMillis();
 
