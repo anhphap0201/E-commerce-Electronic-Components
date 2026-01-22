@@ -14,16 +14,16 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    public Product addProduct(Product product){
+    public Product addProduct(Product product) {
         return productRepository.saveAndFlush(product);
     }
 
-    public List<Product> findAll(){
+    public List<Product> findAll() {
         return productRepository.findAll();
     }
 
     public Product updateProductById(long id,
-                                       Product newProduct){
+                                     Product newProduct) {
 
         Optional<Product> existingProduct
                 = productRepository.findById(id);
@@ -43,7 +43,7 @@ public class ProductService {
         return null;
     }
 
-    public void deleteProductById(long id){
+    public void deleteProductById(long id) {
         productRepository.deleteById(id);
     }
 

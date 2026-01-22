@@ -4,11 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "products")
@@ -17,14 +13,14 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(nullable = false)
     private String name;
-    
+
     @Column(nullable = false, unique = true)
     private String slug;
 
@@ -33,7 +29,7 @@ public class Product {
 
     @Column(columnDefinition = "TEXT")
     private String description;
-    
+
     @Column(name = "avg_rating")
     private Double avgRating = 0.0;
 
@@ -42,9 +38,9 @@ public class Product {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "product_categories",
-        joinColumns = @JoinColumn(name = "product_id"),
-        inverseJoinColumns = @JoinColumn(name = "category_id")
+            name = "product_categories",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
     )
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -66,7 +62,7 @@ public class Product {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
-    
+
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
@@ -78,7 +74,7 @@ public class Product {
         if (o == null || getClass() != o.getClass()) return false;
         Product product = (Product) o;
         return Objects.equals(id, product.id) &&
-               Objects.equals(slug, product.slug);
+                Objects.equals(slug, product.slug);
     }
 
     @Override

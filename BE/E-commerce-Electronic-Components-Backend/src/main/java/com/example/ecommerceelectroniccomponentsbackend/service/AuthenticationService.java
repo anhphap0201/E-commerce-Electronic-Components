@@ -17,7 +17,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
-import java.util.Date;
 
 @Service
 @RequiredArgsConstructor

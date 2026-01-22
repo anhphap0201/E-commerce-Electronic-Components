@@ -97,10 +97,10 @@ public class UserService {
 
                     if (ttl > 0) {
                         blacklistedTokenRepository.save(
-                            BlacklistedToken.builder()
-                                .jwtId(jwtId)
-                                .ttl(ttl)
-                                .build()
+                                BlacklistedToken.builder()
+                                        .jwtId(jwtId)
+                                        .ttl(ttl)
+                                        .build()
                         );
                     }
                 }

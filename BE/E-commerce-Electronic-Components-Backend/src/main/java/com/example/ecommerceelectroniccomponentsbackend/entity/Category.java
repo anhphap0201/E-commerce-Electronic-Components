@@ -16,14 +16,14 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Category {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(nullable = false, unique = true)
     private String name;
-    
+
     @Column(name = "slug", unique = true)
     private String slug;
 
@@ -50,7 +50,7 @@ public class Category {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
-    
+
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
@@ -62,7 +62,7 @@ public class Category {
         if (o == null || getClass() != o.getClass()) return false;
         Category category = (Category) o;
         return Objects.equals(id, category.id) &&
-               Objects.equals(name, category.name);
+                Objects.equals(name, category.name);
     }
 
     @Override

@@ -70,9 +70,8 @@ public class ProductSearchService {
                 .collect(Collectors.toList());
     }
 
-    // ...existing code...
 
-    private ProductWithVariantsDTO convertToProductWithVariantsDTO(Product product) {
+    public ProductWithVariantsDTO convertToProductWithVariantsDTO(Product product) {
         ProductWithVariantsDTO dto = new ProductWithVariantsDTO();
         dto.setId(product.getId());
         dto.setName(product.getName());
