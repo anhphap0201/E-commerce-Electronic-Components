@@ -162,7 +162,7 @@
             <NuxtLink
               v-for="product in paginatedProducts"
               :key="product.id"
-              :to="`/products/${product.productId}`"
+              :to="`/products/${product.id}`"
               class="bg-white border-2 border-gray-100 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105 hover:-translate-y-1 hover:border-[#09f] group cursor-pointer"
             >
               <!-- Product Image -->
@@ -173,12 +173,16 @@
                   class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
                 />
                 <!-- Sale Badge -->
-                <div v-if="product.discount" class="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-bold">
-                  -{{ product.discount }}%
+                <div v-if="product.hasDiscount" class="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-bold">
+                  Giảm giá
                 </div>
                 <!-- Category Badge -->
                 <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-gray-700 px-3 py-1 rounded-lg text-xs font-medium">
                   {{ product.category }}
+                </div>
+                <!-- Variant Count Badge -->
+                <div v-if="product.variantCount > 1" class="absolute bottom-3 right-3 bg-purple-100 text-purple-800 px-2 py-1 rounded-lg text-xs font-medium">
+                  {{ product.variantCount }} biến thể
                 </div>
               </div>
 
@@ -188,13 +192,13 @@
                   {{ product.name }}
                 </h3>
                 
-                <!-- Price -->
-                <div class="flex items-center gap-2 mb-3">
+                <!-- Price Range -->
+                <div class="flex flex-col mb-3">
                   <span class="text-lg font-bold text-[#09f]">
-                    {{ formatPrice(product.discount ? product.salePrice : product.originalPrice) }}
+                    {{ product.priceRange }}
                   </span>
-                  <span v-if="product.discount" class="text-sm text-gray-400 line-through">
-                    {{ formatPrice(product.originalPrice) }}
+                  <span v-if="product.hasDiscount" class="text-xs text-green-600 font-medium">
+                    Có giảm giá
                   </span>
                 </div>
 
@@ -422,51 +426,30 @@ const searchProducts = async () => {
     if (result) {
       // Nếu result là array trực tiếp (không có pagination)
       if (Array.isArray(result)) {
-        // Flatten variants: mỗi variant trở thành 1 sản phẩm riêng
-        const flattenedProducts: any[] = []
-        result.forEach((product: any) => {
-          if (product.variants && product.variants.length > 0) {
-            // Mỗi variant thành 1 product riêng
-            product.variants.forEach((variant: any) => {
-              flattenedProducts.push({
-                ...product,
-                selectedVariant: variant
-              })
-            })
-          } else {
-            // Nếu không có variant, giữ nguyên product
-            flattenedProducts.push(product)
-          }
-        })
-        
-        // Filter ở client-side khi có search query + filters
-        let finalProducts = flattenedProducts
+        // Không flatten variants nữa - hiển thị sản phẩm với khoảng giá
+        let finalProducts = result
         
         // Filter by category
         if (selectedCategory.value && searchQuery.value) {
-          finalProducts = finalProducts.filter(p => {
+          finalProducts = finalProducts.filter((p: any) => {
             return p.categories && p.categories.some((cat: any) => cat.id === selectedCategory.value)
           })
         }
         
-        // Filter by price range
+        // Filter by price range (sử dụng minPrice của product)
         if (selectedPriceRange.value && searchQuery.value) {
           const range = priceRanges.find(r => r.id === selectedPriceRange.value)
           if (range) {
-            finalProducts = finalProducts.filter(p => {
-              const variant = p.selectedVariant
-              const price = variant?.discountPrice || variant?.price || 0
-              return price >= range.min && price <= range.max
+            finalProducts = finalProducts.filter((p: any) => {
+              const minPrice = p.minDiscountPrice || p.minPrice || 0
+              return minPrice >= range.min && minPrice <= range.max
             })
           }
         }
         
-        // Filter by sale
+        // Filter by sale (hasDiscount từ backend)
         if (onlyShowSale.value && searchQuery.value) {
-          finalProducts = finalProducts.filter(p => {
-            const variant = p.selectedVariant
-            return variant && variant.discountPrice && variant.discountPrice < variant.price
-          })
+          finalProducts = finalProducts.filter((p: any) => p.hasDiscount)
         }
         
         products.value = finalProducts
@@ -474,22 +457,9 @@ const searchProducts = async () => {
       } 
       // Nếu result có cấu trúc pagination (Page object)
       else if (result.content) {
-        const flattenedProducts: any[] = []
-        result.content.forEach((product: any) => {
-          if (product.variants && product.variants.length > 0) {
-            product.variants.forEach((variant: any) => {
-              flattenedProducts.push({
-                ...product,
-                selectedVariant: variant
-              })
-            })
-          } else {
-            flattenedProducts.push(product)
-          }
-        })
-        
-        products.value = flattenedProducts
-        totalElements.value = result.totalElements || flattenedProducts.length
+        // Không flatten variants - sử dụng products với khoảng giá
+        products.value = result.content
+        totalElements.value = result.totalElements || result.content.length
       }
       // Fallback
       else {
@@ -506,26 +476,33 @@ const searchProducts = async () => {
   }
 }
 
-// Map product data với variants
+// Map product data với price range (không còn flatten variants)
 const mapProduct = (p: any) => {
-  const variant = p.selectedVariant
-  const originalPrice = variant?.price || 0
-  const salePrice = variant?.discountPrice || originalPrice
-  const discountPercentage = originalPrice > 0 && salePrice < originalPrice
-    ? Math.round(((originalPrice - salePrice) / originalPrice) * 100)
-    : 0
+  // Tính khoảng giá từ minPrice/maxPrice
+  const minPrice = p.minDiscountPrice || p.minPrice || 0
+  const maxPrice = p.maxDiscountPrice || p.maxPrice || 0
+  
+  // Format price range
+  let priceRange = ''
+  if (minPrice === maxPrice || maxPrice === 0) {
+    priceRange = formatPrice(minPrice)
+  } else {
+    priceRange = `${formatPrice(minPrice)} - ${formatPrice(maxPrice)}`
+  }
   
   return {
-    id: variant?.id || p.id,
+    id: p.id,
     productId: p.id,
-    name: variant?.variantName || p.name,
+    name: p.name,
     category: p.categories?.[0]?.name || 'N/A',
-    img: p.categories?.[0]?.imageUrl || '/images/Edunera_Logo_512.png',
-    originalPrice: originalPrice,
-    salePrice: salePrice,
-    discount: discountPercentage,
-    stockQuantity: variant?.inStock || 0,
-    isAvailable: variant?.isAvailable || false
+    img: p.defaultImageUrl ? `http://localhost:8080${p.defaultImageUrl}` : (p.categories?.[0]?.imageUrl || '/images/Edunera_Logo_512.png'),
+    minPrice: minPrice,
+    maxPrice: maxPrice,
+    priceRange: priceRange,
+    hasDiscount: p.hasDiscount || false,
+    variantCount: p.variants?.length || 0,
+    totalStock: p.totalStock || 0,
+    isAvailable: (p.totalStock || 0) > 0
   }
 }
 
@@ -541,17 +518,9 @@ const sortedProducts = computed(() => {
     
     switch (sortBy.value) {
       case 'price-asc':
-        return prods.sort((a, b) => {
-          const priceA = a.discount ? a.salePrice : a.originalPrice
-          const priceB = b.discount ? b.salePrice : b.originalPrice
-          return priceA - priceB
-        })
+        return prods.sort((a, b) => a.minPrice - b.minPrice)
       case 'price-desc':
-        return prods.sort((a, b) => {
-          const priceA = a.discount ? a.salePrice : a.originalPrice
-          const priceB = b.discount ? b.salePrice : b.originalPrice
-          return priceB - priceA
-        })
+        return prods.sort((a, b) => b.minPrice - a.minPrice)
       case 'name_asc':
         return prods.sort((a, b) => a.name.localeCompare(b.name))
       case 'name_desc':

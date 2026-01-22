@@ -65,6 +65,19 @@ public class ProductSearchController {
         return ResponseEntity.ok(products);
     }
 
+    @GetMapping("/by-product-id/{productId}")
+    @Operation(summary = "Lấy chi tiết sản phẩm theo ID",
+            description = "Lấy sản phẩm (kèm variants) theo ID sản phẩm")
+    public ResponseEntity<ProductWithVariantsDTO> getProductById(
+            @Parameter(description = "ID của sản phẩm", example = "1")
+            @PathVariable Long productId) {
+        ProductWithVariantsDTO product = productSearchService.getProductById(productId);
+        if (product == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(product);
+    }
+
 
     @PostMapping("/filter")
     @Operation(summary = "Lọc sản phẩm theo nhiều tiêu chí",

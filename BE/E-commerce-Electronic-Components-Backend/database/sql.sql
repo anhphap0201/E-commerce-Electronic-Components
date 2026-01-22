@@ -71,6 +71,7 @@ CREATE TABLE product_variants
     id             BIGSERIAL PRIMARY KEY,
     product_id     BIGINT REFERENCES products (id) ON DELETE CASCADE,
     variant_name   VARCHAR(255),
+    description    TEXT,
     price          NUMERIC(12, 2) NOT NULL,
     discount_price NUMERIC(12, 2),
     in_stock       INT       DEFAULT 0 CHECK (in_stock >= 0),

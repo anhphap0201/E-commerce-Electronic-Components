@@ -64,12 +64,12 @@
             <!-- Price -->
             <div class="bg-gray-50 rounded-xl p-6">
               <div class="flex items-baseline gap-4 mb-2">
-                <span class="text-4xl font-bold text-[#09f]">{{ formatPrice(product.salePrice) }}</span>
-                <span v-if="product.originalPrice > product.salePrice" class="text-xl text-gray-400 line-through">
-                  {{ formatPrice(product.originalPrice) }}
+                <span class="text-4xl font-bold text-[#09f]">{{ formatPrice(currentPrice) }}</span>
+                <span v-if="currentOriginalPrice > currentPrice" class="text-xl text-gray-400 line-through">
+                  {{ formatPrice(currentOriginalPrice) }}
                 </span>
-                <span v-if="product.discount" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold">
-                  -{{ product.discount }}%
+                <span v-if="currentDiscount" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold">
+                  -{{ currentDiscount }}%
                 </span>
               </div>
               <p class="text-sm text-gray-600">Giá đã bao gồm VAT</p>
@@ -78,13 +78,70 @@
             <!-- Stock Status -->
             <div class="flex items-center gap-2">
               <span class="text-gray-700 font-medium">Tình trạng:</span>
-              <span :class="product.stock > 0 ? 'text-green-600' : 'text-red-600'" class="font-semibold">
-                {{ product.stock > 0 ? `Còn hàng (${product.stock} sản phẩm)` : 'Hết hàng' }}
+              <span :class="currentStock > 0 ? 'text-green-600' : 'text-red-600'" class="font-semibold">
+                {{ currentStock > 0 ? `Còn hàng (${currentStock} sản phẩm)` : 'Hết hàng' }}
               </span>
             </div>
 
+            <!-- Variant Selector -->
+            <div v-if="product.variants && product.variants.length > 0" class="space-y-3">
+              <label class="text-gray-700 font-medium block">
+                Chọn biến thể: 
+                <span v-if="product.variants.length > 1" class="text-gray-500 text-sm">({{ product.variants.length }} lựa chọn)</span>
+              </label>
+              <div class="flex flex-wrap gap-3">
+                <button
+                  v-for="variant in product.variants"
+                  :key="variant.id"
+                  @click="selectVariant(variant)"
+                  :class="[
+                    'relative px-4 py-3 rounded-xl border-2 font-medium transition-all duration-200 text-left',
+                    selectedVariant?.id === variant.id
+                      ? 'border-[#09f] bg-blue-50 text-[#09f] shadow-md'
+                      : 'border-gray-300 hover:border-[#09f] text-gray-700 hover:bg-gray-50',
+                    (!variant.isAvailable || variant.inStock <= 0) ? 'opacity-50 cursor-not-allowed' : ''
+                  ]"
+                  :disabled="!variant.isAvailable || variant.inStock <= 0"
+                  :title="variant.description || variant.variantName"
+                >
+                  <div class="flex items-center gap-3">
+                    <!-- Variant thumbnail -->
+                    <div v-if="variant.imageUrl" class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                      <img 
+                        :src="variant.imageUrl.startsWith('http') ? variant.imageUrl : `${API_BASE_URL}${variant.imageUrl}`" 
+                        :alt="variant.variantName"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <span class="block text-sm font-medium">{{ variant.variantName }}</span>
+                      <div class="flex items-center gap-2 mt-0.5">
+                        <span class="text-xs font-semibold text-[#09f]">
+                          {{ formatPrice(variant.discountPrice || variant.price) }}
+                        </span>
+                        <span v-if="variant.discountPrice && variant.discountPrice < variant.price" class="text-xs text-gray-400 line-through">
+                          {{ formatPrice(variant.price) }}
+                        </span>
+                      </div>
+                      <span v-if="variant.inStock <= 0" class="text-xs text-red-500">Hết hàng</span>
+                      <span v-else-if="variant.inStock < 10" class="text-xs text-orange-500">Còn {{ variant.inStock }}</span>
+                    </div>
+                  </div>
+                  <!-- Check mark for selected -->
+                  <div v-if="selectedVariant?.id === variant.id" class="absolute top-1 right-1 w-5 h-5 bg-[#09f] rounded-full flex items-center justify-center">
+                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </button>
+              </div>
+              <p v-if="selectedVariant?.description" class="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                <strong>{{ selectedVariant.variantName }}:</strong> {{ selectedVariant.description }}
+              </p>
+            </div>
+
             <!-- Quantity Selector -->
-            <div v-if="product.stock > 0">
+            <div v-if="currentStock > 0">
               <label class="text-gray-700 font-medium block mb-2">Số lượng:</label>
               <div class="flex items-center gap-4">
                 <div class="flex items-center border-2 border-gray-300 rounded-xl overflow-hidden">
@@ -99,13 +156,13 @@
                     v-model.number="quantity" 
                     type="number" 
                     min="1" 
-                    :max="product.stock"
+                    :max="currentStock"
                     class="w-16 h-12 text-center font-semibold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                   />
                   <button   
                     @click="increaseQuantity"
                     class="w-12 h-12 flex items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors"
-                    :disabled="quantity >= product.stock"
+                    :disabled="quantity >= currentStock"
                   >
                     <span class="text-xl">+</span>
                   </button>
@@ -116,7 +173,7 @@
             <!-- Action Buttons -->
             <div class="flex gap-4">
               <button 
-                v-if="product.stock > 0"
+                v-if="currentStock > 0"
                 @click="addToCart"
                 class="flex-1  text-black py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:bg-gray-200 hover:shadow-xl hover:scale-105 active:scale-95 bg-gray-100"
 
@@ -125,7 +182,7 @@
                 Thêm vào giỏ hàng
               </button>
               <button 
-                v-if="product.stock > 0"
+                v-if="currentStock > 0"
                 @click="buyNow"
                 class="flex-1 bg-gradient-to-r from-[#09f] to-[#0077cc] text-white py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
 
@@ -133,7 +190,7 @@
                 Mua ngay
               </button>
               <button 
-                v-if="product.stock > 0"
+                v-if="currentStock > 0"
                 @click="toggleWishlist"
                 :class="[
                   'w-14 h-14 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 border-2 flex items-center justify-center',
@@ -211,7 +268,20 @@
             <!-- Description Tab -->
             <div v-if="activeTab === 'description'" class="prose max-w-none">
               <h3 class="text-xl font-bold text-gray-900 mb-4">Mô tả sản phẩm</h3>
-              <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ product.description }}</p>
+              
+              <!-- Short Description -->
+              <div v-if="product.shortDescription" class="bg-blue-50 border-l-4 border-[#09f] p-4 mb-6 rounded-r-lg">
+                <p class="text-gray-700 font-medium">{{ product.shortDescription }}</p>
+              </div>
+              
+              <!-- Full Description -->
+              <div class="text-gray-700 leading-relaxed whitespace-pre-line">{{ product.description }}</div>
+              
+              <!-- Selected Variant Description -->
+              <div v-if="selectedVariant?.description" class="mt-6 bg-gray-50 rounded-xl p-4">
+                <h4 class="font-semibold text-gray-900 mb-2">Thông tin biến thể: {{ selectedVariant.variantName }}</h4>
+                <p class="text-gray-600">{{ selectedVariant.description }}</p>
+              </div>
             </div>
 
             <!-- Specifications Tab -->
@@ -340,14 +410,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const productId = computed(() => route.params.id as string)
 
-// Product data (this should come from API in real application)
+const API_BASE_URL = 'http://localhost:8080'
+
+// Product data
 const product = ref<any>(null)
+const selectedVariant = ref<any>(null)
 const selectedImage = ref('')
 const quantity = ref(1)
 const activeTab = ref('description')
@@ -358,6 +431,50 @@ const tabs = [
   { id: 'specifications', label: 'Thông số kỹ thuật' },
   { id: 'reviews', label: 'Đánh giá' }
 ]
+
+// Computed properties for variant-based data
+const currentPrice = computed(() => {
+  if (selectedVariant.value) {
+    return selectedVariant.value.discountPrice || selectedVariant.value.price
+  }
+  // Fallback to first variant or product minPrice
+  const firstVariant = product.value?.variants?.[0]
+  return firstVariant?.discountPrice || firstVariant?.price || product.value?.minPrice || 0
+})
+
+const currentOriginalPrice = computed(() => {
+  if (selectedVariant.value) {
+    return selectedVariant.value.price
+  }
+  const firstVariant = product.value?.variants?.[0]
+  return firstVariant?.price || product.value?.maxPrice || 0
+})
+
+const currentDiscount = computed(() => {
+  const original = currentOriginalPrice.value
+  const sale = currentPrice.value
+  if (original > sale && sale > 0) {
+    return Math.round(((original - sale) / original) * 100)
+  }
+  return 0
+})
+
+const currentStock = computed(() => {
+  if (selectedVariant.value) {
+    return selectedVariant.value.inStock || 0
+  }
+  return product.value?.totalStock || product.value?.variants?.reduce((sum: number, v: any) => sum + (v.inStock || 0), 0) || 0
+})
+
+const selectVariant = (variant: any) => {
+  selectedVariant.value = variant
+  // Update image if variant has image
+  if (variant.imageUrl) {
+    selectedImage.value = `${API_BASE_URL}${variant.imageUrl}`
+  }
+  // Reset quantity
+  quantity.value = 1
+}
 
 // Mock data - replace with API call
 const mockProducts = [
@@ -545,15 +662,115 @@ onMounted(() => {
   loadProduct()
 })
 
-const loadProduct = () => {
-  // Simulate API call
-  setTimeout(() => {
-    const foundProduct = mockProducts.find(p => p.id === productId.value)
-    if (foundProduct) {
-      product.value = foundProduct
-      selectedImage.value = foundProduct.images[0]
+const loadProduct = async () => {
+  try {
+    // Fetch product from API
+    const data = await $fetch(`${API_BASE_URL}/api/products/search/by-product-id/${productId.value}`)
+    
+    if (data) {
+      const p = data as any
+      
+      // Map API response to component format
+      // Description từ Product, ảnh và giá từ Variants
+      product.value = {
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        shortDescription: p.shortDescription || '',
+        description: p.description || p.shortDescription || 'Chưa có mô tả chi tiết cho sản phẩm này.',
+        categories: p.categories || [],
+        variants: p.variants || [],
+        images: buildProductImages(p),
+        rating: p.avgRating || 4.5,
+        reviewCount: 0, // TODO: từ reviews API
+        sold: p.soldQuantity || 0,
+        warranty: 12,
+        specifications: [],
+        ratingDistribution: { 5: 70, 4: 20, 3: 7, 2: 2, 1: 1 },
+        reviews: [],
+        // Price range info từ variants
+        minPrice: p.minPrice,
+        maxPrice: p.maxPrice,
+        minDiscountPrice: p.minDiscountPrice,
+        maxDiscountPrice: p.maxDiscountPrice,
+        totalStock: p.totalStock,
+        hasDiscount: p.hasDiscount,
+        defaultImageUrl: p.defaultImageUrl
+      }
+      
+      // Set selected image
+      selectedImage.value = product.value.images[0] || '/images/placeholder.png'
+      
+      // Auto-select first variant if only one
+      if (p.variants && p.variants.length === 1) {
+        selectVariant(p.variants[0])
+      } else if (p.variants && p.variants.length > 0) {
+        // Pre-select first available variant
+        const firstAvailable = p.variants.find((v: any) => v.isAvailable && v.inStock > 0)
+        if (firstAvailable) {
+          selectVariant(firstAvailable)
+        }
+      }
     }
-  }, 500)
+  } catch (error) {
+    console.error('Error loading product:', error)
+    // Fallback to mock data for demo
+    loadMockProduct()
+  }
+}
+
+const buildProductImages = (p: any) => {
+  const images: string[] = []
+  
+  // Ưu tiên lấy ảnh từ variants trước
+  if (p.variants && p.variants.length > 0) {
+    p.variants.forEach((v: any) => {
+      if (v.imageUrl) {
+        const imgUrl = v.imageUrl.startsWith('http') ? v.imageUrl : `${API_BASE_URL}${v.imageUrl}`
+        if (!images.includes(imgUrl)) {
+          images.push(imgUrl)
+        }
+      }
+    })
+  }
+  
+  // Thêm default image nếu có và chưa có trong list
+  if (p.defaultImageUrl) {
+    const defaultImg = p.defaultImageUrl.startsWith('http') ? p.defaultImageUrl : `${API_BASE_URL}${p.defaultImageUrl}`
+    if (!images.includes(defaultImg)) {
+      images.unshift(defaultImg) // Đặt lên đầu
+    }
+  }
+  
+  // Add category image as fallback
+  if (images.length === 0 && p.categories?.[0]?.imageUrl) {
+    images.push(p.categories[0].imageUrl)
+  }
+  
+  // Ensure at least one placeholder
+  if (images.length === 0) {
+    images.push('/images/placeholder.png')
+  }
+  
+  return images
+}
+
+const loadMockProduct = () => {
+  // Mock data fallback
+  const foundProduct = mockProducts.find(p => p.id === productId.value)
+  if (foundProduct) {
+    product.value = foundProduct
+    selectedImage.value = foundProduct.images[0]
+  }
+}
+
+const toggleWishlist = () => {
+  isInWishlist.value = !isInWishlist.value
+  if (isInWishlist.value) {
+    alert('Đã thêm vào danh sách yêu thích')
+  } else {
+    alert('Đã xóa khỏi danh sách yêu thích')
+  }
 }
 
 const formatPrice = (price: number) => {
@@ -572,7 +789,7 @@ const formatDate = (date: Date) => {
 }
 
 const increaseQuantity = () => {
-  if (quantity.value < product.value.stock) {
+  if (quantity.value < currentStock.value) {
     quantity.value++
   }
 }
@@ -584,8 +801,13 @@ const decreaseQuantity = () => {
 }
 
 const addToCart = () => {
-  // Implement add to cart logic
-  alert(`Đã thêm ${quantity.value} sản phẩm vào giỏ hàng!`)
+  // Ensure variant is selected if there are multiple
+  if (product.value.variants?.length > 1 && !selectedVariant.value) {
+    alert('Vui lòng chọn biến thể sản phẩm')
+    return
+  }
+  const variantId = selectedVariant.value?.id || product.value.variants?.[0]?.id
+  alert(`Đã thêm ${quantity.value} sản phẩm (variant: ${variantId}) vào giỏ hàng!`)
 }
 
 const buyNow = () => {

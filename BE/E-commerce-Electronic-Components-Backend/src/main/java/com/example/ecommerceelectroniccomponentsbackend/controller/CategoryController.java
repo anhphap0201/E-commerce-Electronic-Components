@@ -21,7 +21,7 @@ public class CategoryController {
 
     // CREATE - POST /api/categories
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> createCategory(@RequestBody Category category) {
         try {
             if (categoryService.existsByName(category.getName())) {

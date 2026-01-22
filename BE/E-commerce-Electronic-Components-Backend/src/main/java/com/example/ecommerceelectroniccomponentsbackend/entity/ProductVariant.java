@@ -28,6 +28,12 @@ public class ProductVariant {
     @Column(name = "variant_name")
     private String variantName;
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
