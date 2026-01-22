@@ -1,7 +1,8 @@
 package com.example.ecommerceelectroniccomponentsbackend.controller;
 
-import com.example.ecommerceelectroniccomponentsbackend.entity.Inventory;
+import com.example.ecommerceelectroniccomponentsbackend.dto.InventoryDTO;
 import com.example.ecommerceelectroniccomponentsbackend.service.InventoryService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +20,11 @@ public class InventoryController {
     @Autowired
     private InventoryService inventoryService;
 
-    // CREATE - POST /api/inventory
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createInventory(@RequestBody Inventory inventory) {
+    public ResponseEntity<?> createInventory(@Valid @RequestBody InventoryDTO inventory) {
         try {
-            Inventory created = inventoryService.createInventory(inventory);
+            InventoryDTO created = inventoryService.createInventory(inventory);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -32,17 +32,15 @@ public class InventoryController {
         }
     }
 
-    // READ ALL - GET /api/inventory
     @GetMapping
-    public ResponseEntity<List<Inventory>> getAllInventory() {
-        List<Inventory> inventories = inventoryService.getAllInventory();
+    public ResponseEntity<List<InventoryDTO>> getAllInventory() {
+        List<InventoryDTO> inventories = inventoryService.getAllInventory();
         return ResponseEntity.ok(inventories);
     }
 
-    // READ BY ID - GET /api/inventory/{id}
     @GetMapping("/{id}")
     public ResponseEntity<?> getInventoryById(@PathVariable Long id) {
-        Optional<Inventory> inventory = inventoryService.getInventoryById(id);
+        Optional<InventoryDTO> inventory = inventoryService.getInventoryById(id);
         if (inventory.isPresent()) {
             return ResponseEntity.ok(inventory.get());
         }
@@ -50,10 +48,9 @@ public class InventoryController {
                 .body("Kho hàng với ID " + id + " không tồn tại");
     }
 
-    // GET INVENTORY BY PRODUCT ID - GET /api/inventory/product/{productId}
     @GetMapping("/product/{productId}")
     public ResponseEntity<?> getInventoryByProductId(@PathVariable Long productId) {
-        Optional<Inventory> inventory = inventoryService.getInventoryByProductId(productId);
+        Optional<InventoryDTO> inventory = inventoryService.getInventoryByProductId(productId);
         if (inventory.isPresent()) {
             return ResponseEntity.ok(inventory.get());
         }
@@ -61,10 +58,9 @@ public class InventoryController {
                 .body("Kho hàng cho sản phẩm ID " + productId + " không tồn tại");
     }
 
-    // GET INVENTORY BY WAREHOUSE - GET /api/inventory/warehouse/{warehouse}
     @GetMapping("/warehouse/{warehouse}")
     public ResponseEntity<?> getInventoryByWarehouse(@PathVariable String warehouse) {
-        List<Inventory> inventories = inventoryService.getInventoryByWarehouse(warehouse);
+        List<InventoryDTO> inventories = inventoryService.getInventoryByWarehouse(warehouse);
         if (!inventories.isEmpty()) {
             return ResponseEntity.ok(inventories);
         }
@@ -72,12 +68,11 @@ public class InventoryController {
                 .body("Không có kho hàng nào với tên '" + warehouse + "'");
     }
 
-    // UPDATE - PUT /api/inventory/{id}
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateInventory(@PathVariable Long id, @RequestBody Inventory updatedInventory) {
+    public ResponseEntity<?> updateInventory(@PathVariable Long id, @Valid @RequestBody InventoryDTO updatedInventory) {
         try {
-            Optional<Inventory> updated = inventoryService.updateInventory(id, updatedInventory);
+            Optional<InventoryDTO> updated = inventoryService.updateInventory(id, updatedInventory);
             if (updated.isPresent()) {
                 return ResponseEntity.ok(updated.get());
             }
@@ -89,12 +84,11 @@ public class InventoryController {
         }
     }
 
-    // UPDATE QUANTITY ONLY - PATCH /api/inventory/{id}/quantity
     @PatchMapping("/{id}/quantity")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateQuantity(@PathVariable Long id, @RequestParam Integer quantity) {
         try {
-            Optional<Inventory> updated = inventoryService.updateQuantity(id, quantity);
+            Optional<InventoryDTO> updated = inventoryService.updateQuantity(id, quantity);
             if (updated.isPresent()) {
                 return ResponseEntity.ok(updated.get());
             }
@@ -106,7 +100,6 @@ public class InventoryController {
         }
     }
 
-    // CHECK LOW STOCK - GET /api/inventory/{id}/low-stock
     @GetMapping("/{id}/low-stock")
     public ResponseEntity<?> isLowStock(@PathVariable Long id) {
         boolean isLow = inventoryService.isLowStock(id);
@@ -116,7 +109,6 @@ public class InventoryController {
         return ResponseEntity.ok("Số lượng hàng hóa đủ");
     }
 
-    // DELETE - DELETE /api/inventory/{id}
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteInventory(@PathVariable Long id) {

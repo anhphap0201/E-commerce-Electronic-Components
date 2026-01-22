@@ -1,8 +1,10 @@
 package com.example.ecommerceelectroniccomponentsbackend.controller;
 
-import com.example.ecommerceelectroniccomponentsbackend.entity.Product;
+import com.example.ecommerceelectroniccomponentsbackend.dto.ProductDTO;
 import com.example.ecommerceelectroniccomponentsbackend.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,31 +17,35 @@ import java.util.List;
 public class ProductController {
     private final ProductService productService;
 
-    // GET API → Fetch all details
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productService.findAll();
+    public ResponseEntity<List<ProductDTO>> getAllProducts() {
+        return ResponseEntity.ok(productService.findAll());
     }
 
-    // POST API → Add new detail
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public Product addProduct(@RequestBody Product products) {
-        return productService.addProduct(products);
+    public ResponseEntity<ProductDTO> addProduct(@Valid @RequestBody ProductDTO product) {
+        ProductDTO created = productService.createProduct(product);
+        return ResponseEntity.ok(created);
     }
 
-    // PUT API → Update detail by ID
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public Product updateDetails(@PathVariable int id, @RequestBody Product updatedProduct) {
-        return productService.updateProductById(id, updatedProduct);
+    public ResponseEntity<?> updateDetails(@PathVariable Long id, @Valid @RequestBody ProductDTO updatedProduct) {
+        ProductDTO updated = productService.updateProductById(id, updatedProduct);
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
     }
 
-    // DELETE API → Remove detail by ID
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public String deleteDetails(@PathVariable int id) {
-        productService.deleteProductById(id);
-        return "Product with id: " + id + " has been deleted";
+    public ResponseEntity<String> deleteDetails(@PathVariable Long id) {
+        boolean deleted = productService.deleteProductById(id);
+        if (deleted) {
+            return ResponseEntity.ok("Product with id: " + id + " has been deleted");
+        }
+        return ResponseEntity.notFound().build();
     }
 }
