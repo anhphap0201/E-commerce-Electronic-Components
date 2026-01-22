@@ -3,9 +3,15 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  experimental: {
+    oxcParser: false
+  },
+
   postcss: {
     plugins: {
       '@tailwindcss/postcss': {},
     },
   },
 })
+
+

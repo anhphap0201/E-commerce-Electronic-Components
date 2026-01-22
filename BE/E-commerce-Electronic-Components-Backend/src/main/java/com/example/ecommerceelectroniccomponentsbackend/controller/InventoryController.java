@@ -15,10 +15,10 @@ import java.util.Optional;
 @RequestMapping("/api/inventory")
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class InventoryController {
-    
+
     @Autowired
     private InventoryService inventoryService;
-    
+
     // CREATE - POST /api/inventory
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -31,14 +31,14 @@ public class InventoryController {
                     .body("Lỗi khi tạo kho hàng: " + e.getMessage());
         }
     }
-    
+
     // READ ALL - GET /api/inventory
     @GetMapping
     public ResponseEntity<List<Inventory>> getAllInventory() {
         List<Inventory> inventories = inventoryService.getAllInventory();
         return ResponseEntity.ok(inventories);
     }
-    
+
     // READ BY ID - GET /api/inventory/{id}
     @GetMapping("/{id}")
     public ResponseEntity<?> getInventoryById(@PathVariable Long id) {
@@ -49,7 +49,7 @@ public class InventoryController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body("Kho hàng với ID " + id + " không tồn tại");
     }
-    
+
     // GET INVENTORY BY PRODUCT ID - GET /api/inventory/product/{productId}
     @GetMapping("/product/{productId}")
     public ResponseEntity<?> getInventoryByProductId(@PathVariable Long productId) {
@@ -60,7 +60,7 @@ public class InventoryController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body("Kho hàng cho sản phẩm ID " + productId + " không tồn tại");
     }
-    
+
     // GET INVENTORY BY WAREHOUSE - GET /api/inventory/warehouse/{warehouse}
     @GetMapping("/warehouse/{warehouse}")
     public ResponseEntity<?> getInventoryByWarehouse(@PathVariable String warehouse) {
@@ -71,7 +71,7 @@ public class InventoryController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body("Không có kho hàng nào với tên '" + warehouse + "'");
     }
-    
+
     // UPDATE - PUT /api/inventory/{id}
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -88,7 +88,7 @@ public class InventoryController {
                     .body("Lỗi khi cập nhật kho hàng: " + e.getMessage());
         }
     }
-    
+
     // UPDATE QUANTITY ONLY - PATCH /api/inventory/{id}/quantity
     @PatchMapping("/{id}/quantity")
     @PreAuthorize("hasRole('ADMIN')")
@@ -105,7 +105,7 @@ public class InventoryController {
                     .body("Lỗi khi cập nhật số lượng: " + e.getMessage());
         }
     }
-    
+
     // CHECK LOW STOCK - GET /api/inventory/{id}/low-stock
     @GetMapping("/{id}/low-stock")
     public ResponseEntity<?> isLowStock(@PathVariable Long id) {
@@ -115,7 +115,7 @@ public class InventoryController {
         }
         return ResponseEntity.ok("Số lượng hàng hóa đủ");
     }
-    
+
     // DELETE - DELETE /api/inventory/{id}
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")

@@ -24,9 +24,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class JwtService {
 
+    private final BlacklistedTokenRepository blacklistedTokenRepository;
     @Value("${jwt.secret-key}")
     private String secretKey;
-    private final BlacklistedTokenRepository blacklistedTokenRepository;
 
     public TokenPayload generateAccessToken(User user) {
 
@@ -90,7 +90,7 @@ public class JwtService {
         } catch (JOSEException e) {
             throw new RuntimeException("Error while signing the token", e);
         }
-        String token =  jwsObject.serialize();
+        String token = jwsObject.serialize();
         return TokenPayload.builder()
                 .token(token)
                 .jwtId(jwtId)
@@ -108,7 +108,7 @@ public class JwtService {
         }
         String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
         Optional<BlacklistedToken> byId = blacklistedTokenRepository.findById(jwtId);
-        if(byId.isPresent()) {
+        if (byId.isPresent()) {
             return false;
         }
         return signedJWT.verify(new MACVerifier(secretKey));

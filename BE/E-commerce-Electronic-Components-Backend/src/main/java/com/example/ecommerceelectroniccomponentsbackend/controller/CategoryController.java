@@ -15,10 +15,10 @@ import java.util.Optional;
 @RequestMapping("/api/categories")
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class CategoryController {
-    
+
     @Autowired
     private CategoryService categoryService;
-    
+
     // CREATE - POST /api/categories
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -35,17 +35,16 @@ public class CategoryController {
                     .body("Lỗi khi tạo danh mục: " + e.getMessage());
         }
     }
-    
+
     // READ ALL - GET /api/categories
     @GetMapping
     public ResponseEntity<List<Category>> getAllCategories() {
         List<Category> categories = categoryService.getAllCategories();
         return ResponseEntity.ok(categories);
     }
-    
+
     // READ BY ID - GET /api/categories/{id}
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getCategoryById(@PathVariable Long id) {
         Optional<Category> category = categoryService.getCategoryById(id);
         if (category.isPresent()) {
@@ -54,7 +53,7 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body("Danh mục với ID " + id + " không tồn tại");
     }
-    
+
     // READ BY NAME - GET /api/categories/search/{name}
     @GetMapping("/search/{name}")
     public ResponseEntity<?> getCategoryByName(@PathVariable String name) {
@@ -65,7 +64,7 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body("Danh mục với tên '" + name + "' không tồn tại");
     }
-    
+
     // UPDATE - PUT /api/categories/{id}
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -82,7 +81,7 @@ public class CategoryController {
                     .body("Lỗi khi cập nhật danh mục: " + e.getMessage());
         }
     }
-    
+
     // DELETE - DELETE /api/categories/{id}
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")

@@ -5,11 +5,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductDTO {
+public class ProductWithVariantsDTO {
     private Long id;
     private String name;
     private String slug;
@@ -17,6 +19,8 @@ public class ProductDTO {
     private String description;
     private Double avgRating;
     private Integer soldQuantity;
+    private List<CategoryDTO> categories = new ArrayList<>();
+    private List<ProductVariantDTO> variants = new ArrayList<>();
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
