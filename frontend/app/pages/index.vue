@@ -51,7 +51,7 @@
             v-for="category in categories"
             :key="category.id"
             class="bg-white rounded-2xl p-4 flex flex-col items-center justify-center gap-3 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:-translate-y-1 cursor-pointer border-2 border-transparent hover:border-[#09f] group"
-            @click="handleSearch(category.name)"
+            @click="handleCategoryClick(category.id)"
           >
             <div class="bg-none w-16 h-16 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:scale-110">
               <img 
@@ -285,10 +285,9 @@ const formatPrice = (price: number) => {
     currency: 'VND'
   }).format(price)
 }
-const handleSearch = (categoryName: string) => {
-  if (categoryName?.trim()) {
-    navigateTo(`/search?q=${encodeURIComponent(categoryName)}`)
-  }
+
+const handleCategoryClick = (categoryId: number) => {
+  navigateTo(`/search?category=${categoryId}`)
 }
 
 const buyNow = (productId: number) => {

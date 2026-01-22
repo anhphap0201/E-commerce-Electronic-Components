@@ -18,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/products/search")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*", maxAge = 3600)
 @Tag(name = "Product Search", description = "API tìm kiếm sản phẩm")
 public class ProductSearchController {
 
