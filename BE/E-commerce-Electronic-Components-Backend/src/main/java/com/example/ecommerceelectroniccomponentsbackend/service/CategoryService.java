@@ -13,10 +13,8 @@ public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
     
-    // Create
+    // Create - timestamps are handled by @PrePersist in Category entity
     public Category createCategory(Category category) {
-        category.setCreatedAt(System.currentTimeMillis());
-        category.setUpdatedAt(System.currentTimeMillis());
         return categoryRepository.save(category);
     }
     
@@ -35,12 +33,13 @@ public class CategoryService {
         return categoryRepository.findByName(name);
     }
     
-    // Update
+    // Update - updatedAt is handled by @PreUpdate in Category entity
     public Optional<Category> updateCategory(Long id, Category updatedCategory) {
         return categoryRepository.findById(id).map(category -> {
             category.setName(updatedCategory.getName());
+            category.setSlug(updatedCategory.getSlug());
+            category.setImageUrl(updatedCategory.getImageUrl());
             category.setDescription(updatedCategory.getDescription());
-            category.setUpdatedAt(System.currentTimeMillis());
             return categoryRepository.save(category);
         });
     }
