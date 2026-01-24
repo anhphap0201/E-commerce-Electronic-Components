@@ -1,71 +1,65 @@
 package com.example.ecommerceelectroniccomponentsbackend.service;
 
-import com.example.ecommerceelectroniccomponentsbackend.dto.InventoryDTO;
 import com.example.ecommerceelectroniccomponentsbackend.entity.Inventory;
-import com.example.ecommerceelectroniccomponentsbackend.entity.Product;
-import com.example.ecommerceelectroniccomponentsbackend.mapper.InventoryMapper;
 import com.example.ecommerceelectroniccomponentsbackend.repository.InventoryRepository;
-import com.example.ecommerceelectroniccomponentsbackend.repository.ProductRepository;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class InventoryService {
-
-    private final InventoryRepository inventoryRepository;
-    private final ProductRepository productRepository;
-    private final InventoryMapper inventoryMapper;
-
-    public InventoryDTO createInventory(InventoryDTO dto) {
-        Inventory inventory = inventoryMapper.toEntity(dto);
-        if (dto.getProductId() != null) {
-            Optional<Product> product = productRepository.findById(dto.getProductId());
-            product.ifPresent(inventory::setProduct);
-        }
-        Inventory saved = inventoryRepository.save(inventory);
-        return inventoryMapper.toDTO(saved);
+    
+    @Autowired
+    private InventoryRepository inventoryRepository;
+    
+    // Create
+    public Inventory createInventory(Inventory inventory) {
+        inventory.setLastUpdated(System.currentTimeMillis());
+        return inventoryRepository.save(inventory);
     }
-
-    public List<InventoryDTO> getAllInventory() {
-        List<Inventory> inventories = inventoryRepository.findAll();
-        return inventoryMapper.toDTOList(inventories);
+    
+    // Read all
+    public List<Inventory> getAllInventory() {
+        return inventoryRepository.findAll();
     }
-
-    public Optional<InventoryDTO> getInventoryById(Long id) {
-        return inventoryRepository.findById(id).map(inventoryMapper::toDTO);
+    
+    // Read by ID
+    public Optional<Inventory> getInventoryById(Long id) {
+        return inventoryRepository.findById(id);
     }
-
-    public Optional<InventoryDTO> getInventoryByProductId(Long productId) {
-        return inventoryRepository.findByProductId(productId).map(inventoryMapper::toDTO);
+    
+    // Get inventory by product ID
+    public Optional<Inventory> getInventoryByProductId(Long productId) {
+        return inventoryRepository.findByProductId(productId);
     }
-
-    public List<InventoryDTO> getInventoryByWarehouse(String warehouse) {
-        List<Inventory> inventories = inventoryRepository.findByWarehouse(warehouse);
-        return inventoryMapper.toDTOList(inventories);
+    
+    // Get inventory by warehouse
+    public List<Inventory> getInventoryByWarehouse(String warehouse) {
+        return inventoryRepository.findByWarehouse(warehouse);
     }
-
-    public Optional<InventoryDTO> updateInventory(Long id, InventoryDTO updatedDTO) {
+    
+    // Update
+    public Optional<Inventory> updateInventory(Long id, Inventory updatedInventory) {
         return inventoryRepository.findById(id).map(inventory -> {
-            inventory.setQuantity(updatedDTO.getQuantity());
-            inventory.setMinQuantity(updatedDTO.getMinQuantity());
-            inventory.setWarehouse(updatedDTO.getWarehouse());
-            Inventory saved = inventoryRepository.save(inventory);
-            return inventoryMapper.toDTO(saved);
+            inventory.setQuantity(updatedInventory.getQuantity());
+            inventory.setMinQuantity(updatedInventory.getMinQuantity());
+            inventory.setWarehouse(updatedInventory.getWarehouse());
+            inventory.setLastUpdated(System.currentTimeMillis());
+            return inventoryRepository.save(inventory);
         });
     }
-
-    public Optional<InventoryDTO> updateQuantity(Long id, Integer quantity) {
+    
+    // Update quantity only
+    public Optional<Inventory> updateQuantity(Long id, Integer quantity) {
         return inventoryRepository.findById(id).map(inventory -> {
             inventory.setQuantity(quantity);
-            Inventory saved = inventoryRepository.save(inventory);
-            return inventoryMapper.toDTO(saved);
+            inventory.setLastUpdated(System.currentTimeMillis());
+            return inventoryRepository.save(inventory);
         });
     }
-
+    
+    // Delete
     public boolean deleteInventory(Long id) {
         if (inventoryRepository.existsById(id)) {
             inventoryRepository.deleteById(id);
@@ -73,7 +67,8 @@ public class InventoryService {
         }
         return false;
     }
-
+    
+    // Check if inventory is low
     public boolean isLowStock(Long id) {
         return inventoryRepository.findById(id)
                 .map(inv -> inv.getQuantity() < inv.getMinQuantity())
