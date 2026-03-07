@@ -173,7 +173,7 @@
                   class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
                 />
                 <!-- Sale Badge -->
-                <div v-if="product.hasDiscount" class="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-bold">
+                <div v-if="product.hasDiscount" class="z-10 absolute bottom-3 left-3 bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-bold">
                   Giảm giá
                 </div>
                 <!-- Category Badge -->
@@ -182,7 +182,7 @@
                 </div>
                 <!-- Variant Count Badge -->
                 <div v-if="product.variantCount > 1" class="absolute bottom-3 right-3 bg-purple-100 text-purple-800 px-2 py-1 rounded-lg text-xs font-medium">
-                  {{ product.variantCount }} biến thể
+                  {{ product.variantCount }} phân loại
                 </div>
               </div>
 
@@ -194,11 +194,8 @@
                 
                 <!-- Price Range -->
                 <div class="flex flex-col mb-3">
-                  <span class="text-lg font-bold text-[#09f]">
+                  <span class=" font-bold text-[#09f]">
                     {{ product.priceRange }}
-                  </span>
-                  <span v-if="product.hasDiscount" class="text-xs text-green-600 font-medium">
-                    Có giảm giá
                   </span>
                 </div>
 
@@ -206,9 +203,6 @@
                 <div class="flex gap-2">
                   <button @click.prevent="buyNow(product.productId)" class="flex-1 bg-[#09f] text-white py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-[#0077cc] hover:shadow-lg active:scale-95">
                     Mua ngay
-                  </button>
-                  <button @click.prevent="addToCart(product.productId)" class="w-10 h-10 border-2 border-gray-200 rounded-xl flex items-center justify-center transition-all duration-300 hover:border-[#09f] hover:text-[#09f] hover:scale-105 active:scale-95">
-                    🛒
                   </button>
                 </div>
               </div>
@@ -273,6 +267,7 @@
         </div>
       </div>
     </div>
+    
   </div>
 </template>
 
@@ -586,13 +581,9 @@ const formatPrice = (price: number) => {
   }).format(price)
 }
 
-const buyNow = (productId: number) => {
-  // Redirect to product detail page
+const buyNow = async (productId: number) => {
+  // Redirect to product detail page for better UX (let user choose variant)
   router.push(`/products/${productId}`)
-}
-
-const addToCart = (productId: number) => {
-  alert(`Đã thêm sản phẩm ${productId} vào giỏ hàng`)
 }
 
 const getCategoryName = (categoryId: number | null) => {

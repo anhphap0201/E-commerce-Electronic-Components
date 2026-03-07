@@ -11,67 +11,63 @@
       <!-- Cart Title -->
       <div class="flex items-center justify-between mb-6">
         <h1 class="text-3xl font-bold text-gray-900">Giỏ hàng của bạn</h1>
-        <span class="text-sm text-gray-600">{{ cartItems.length }} sản phẩm</span>
+        <span class="text-sm text-gray-600">{{ cart?.cartItems?.length || 0 }} sản phẩm</span>
       </div>
 
-      <div v-if="cartItems.length > 0" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Loading State -->
+      <div v-if="loading && !cart" class="bg-white rounded-2xl p-12 text-center">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#09f] border-t-transparent mb-4"></div>
+        <p class="text-gray-600">Đang tải giỏ hàng...</p>
+      </div>
+
+      <div v-else-if="cart && cart.cartItems && cart.cartItems.length > 0" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Cart Items -->
         <div class="lg:col-span-2 space-y-4">
           <!-- Select All -->
           <div class="bg-white rounded-2xl p-4 shadow-sm">
             <Checkbox v-model="selectAll" @update:modelValue="toggleSelectAll">
               <span class="text-sm font-medium text-gray-700">
-                Chọn tất cả ({{ cartItems.length }} sản phẩm)
+                Chọn tất cả ({{ cart?.cartItems?.length || 0 }} sản phẩm)
               </span>
             </Checkbox>
           </div>
 
           <div
-            v-for="item in cartItems"
+            v-for="item in cart.cartItems"
             :key="item.id"
             :class="[
               'bg-white rounded-2xl p-6 shadow-sm transition-all duration-300',
-              item.selected ? 'ring-2 ring-[#09f] shadow-md' : 'hover:shadow-md'
+              selectedItems.has(item.id) ? 'ring-2 ring-[#09f] shadow-md' : 'hover:shadow-md'
             ]"
           >
             <div class="flex gap-4">
               <!-- Checkbox -->
               <div class="flex items-start pt-1">
-                <Checkbox v-model="item.selected" />
+                <Checkbox :model-value="selectedItems.has(item.id)" @update:modelValue="toggleItemSelection(item.id)" />
               </div>
               <!-- Product Image -->
-              <NuxtLink 
-                :to="`/products/${item.id}`"
+              <div
                 class="w-24 h-24 flex-shrink-0 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl overflow-hidden flex items-center justify-center p-2"
               >
                 <img 
-                  :src="item.img" 
-                  :alt="item.name"
+                  :src="getImageUrl(item.imageUrl)" 
+                  :alt="item.productName"
                   class="w-full h-full object-contain hover:scale-110 transition-transform duration-300"
                 />
-              </NuxtLink>
+              </div>
 
               <!-- Product Info -->
               <div class="flex-1 min-w-0">
-                <NuxtLink 
-                  :to="`/products/${item.id}`"
-                  class="text-lg font-semibold text-gray-900 hover:text-[#09f] transition-colors line-clamp-2"
-                >
-                  {{ item.name }}
-                </NuxtLink>
+                <div class="text-lg font-semibold text-gray-900 hover:text-[#09f] transition-colors line-clamp-2">
+                  {{ item.productName }}
+                  </div>
                 
-                <p v-if="item.category" class="text-sm text-gray-500 mt-1">{{ item.category }}</p>
+                <p v-if="item.variantName" class="text-sm text-gray-500 mt-1">Phân loại: {{ item.variantName }}</p>
                 
                 <!-- Price -->
                 <div class="flex items-baseline gap-2 mt-2">
                   <span class="text-xl font-bold text-[#09f]">
-                    {{ formatPrice(item.salePrice || item.price) }}
-                  </span>
-                  <span v-if="item.originalPrice && item.originalPrice > (item.salePrice || item.price)" class="text-sm text-gray-400 line-through">
-                    {{ formatPrice(item.originalPrice) }}
-                  </span>
-                  <span v-if="item.discount" class="bg-red-500 text-white px-2 py-0.5 rounded text-xs font-bold ml-1">
-                    -{{ item.discount }}%
+                    {{ formatPrice(item.price) }}
                   </span>
                 </div>
 
@@ -86,17 +82,17 @@
                       <span class="text-lg">−</span>
                     </button>
                     <input 
-                      v-model.number="item.quantity" 
+                      :value="item.quantity" 
                       type="number" 
                       min="1" 
-                      :max="item.stock || 99"
+                      :max="item.inStock || 99"
                       class="w-14 h-10 text-center font-semibold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      @change="updateQuantity(item.id, item.quantity)"
+                      @change="(e: any) => updateQuantity(item.id, parseInt(e.target.value))"
                     />
                     <button 
                       @click="increaseQuantity(item.id)"
                       class="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors"
-                      :disabled="item.quantity >= (item.stock || 99)"
+                      :disabled="item.quantity >= (item.inStock || 99)"
                     >
                       <span class="text-lg">+</span>
                     </button>
@@ -105,7 +101,7 @@
                   <!-- Subtotal & Remove -->
                   <div class="flex items-center gap-4">
                     <span class="text-lg font-bold text-gray-900">
-                      {{ formatPrice((item.salePrice || item.price) * item.quantity) }}
+                      {{ formatPrice(item.price * item.quantity) }}
                     </span>
                     <button 
                       @click="removeItem(item.id)"
@@ -164,7 +160,7 @@
             <!-- Shipping Notice -->
             <div v-if="subtotal < 500000" class="bg-blue-50 border border-blue-200 rounded-xl p-4">
               <p class="text-sm text-blue-700">
-                🚚 Mua thêm <span class="font-bold">{{ formatPrice(500000 - subtotal) }}</span> để được miễn phí vận chuyển
+                Mua thêm <span class="font-bold">{{ formatPrice(500000 - subtotal) }}</span> để được miễn phí vận chuyển
               </p>
               <div class="w-full bg-blue-200 rounded-full h-2 mt-2">
                 <div 
@@ -187,11 +183,6 @@
             >
               Tiến hành thanh toán{{ selectedItemsCount > 0 ? ` (${selectedItemsCount})` : '' }}
             </button>
-
-            <!-- Payment Methods -->
-            <div class="border-t border-gray-200 pt-4">
-              <p class="text-sm text-gray-600 mb-3">Phương thức thanh toán:</p>
-            </div>
 
             <!-- Security -->
             <div class="flex items-center gap-2 text-sm text-gray-600">
@@ -225,79 +216,47 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useCart } from '~/composables/useCart'
 
+definePageMeta({
+  middleware: ['auth']
+})
+
+const API_BASE_URL = 'http://localhost:8080'
+
+// Composables
+const { cart, loading, fetchCart, updateCartItem, removeFromCart, clearCart } = useCart()
+
+// Local state
 const selectAll = ref(false)
+const selectedItems = ref<Set<number>>(new Set())
 
-interface CartItem {
-  id: string | number
-  name: string
-  img: string
-  price?: number
-  originalPrice?: number
-  salePrice?: number
-  discount?: number
-  quantity: number
-  stock?: number
-  category?: string
-  selected?: boolean
-}
-
-// Mock cart data - replace with actual cart state management (Vuex/Pinia)
-const cartItems = ref<CartItem[]>([
-  {
-    id: '1',
-    name: 'Arduino Uno R3 - Bo mạch phát triển',
-    img: '/images/ArduinoUnoR3.jpg',
-    originalPrice: 200000,
-    salePrice: 140000,
-    discount: 30,
-    quantity: 2,
-    stock: 50,
-    category: 'Arduino',
-    selected: true
-  },
-  {
-    id: '2',
-    name: 'ESP32 DevKit V1 - WiFi Bluetooth Module',
-    img: '/images/nodemcu-esp32-01.webp',
-    originalPrice: 150000,
-    salePrice: 105000,
-    discount: 30,
-    quantity: 1,
-    stock: 35,
-    category: 'ESP32',
-    selected: true
-  },
-  {
-    id: '5',
-    name: 'Cảm biến nhiệt độ DHT11',
-    img: '/images/cam-bien-vat-can-hong-ngoai-fm52-5.jpg',
-    originalPrice: 50000,
-    salePrice: 35000,
-    discount: 30,
-    quantity: 3,
-    stock: 100,
-    category: 'Cảm biến',
-    selected: false
+// Fetch cart on mount
+onMounted(async () => {
+  await fetchCart()
+  // Select all items by default
+  if (cart.value?.cartItems && cart.value.cartItems.length > 0) {
+    cart.value.cartItems.forEach(item => selectedItems.value.add(item.id))
+    selectAll.value = true
   }
-])
+})
 
-// Computed values
-const selectedItems = computed(() => {
-  return cartItems.value.filter(item => item.selected)
+const selectedCartItems = computed(() => {
+  return cart.value?.cartItems?.filter(item => selectedItems.value.has(item.id)) || []
 })
 
 const selectedItemsCount = computed(() => {
-  return selectedItems.value.reduce((sum, item) => sum + item.quantity, 0)
+  return selectedCartItems.value.reduce((sum, item) => sum + item.quantity, 0)
 })
 
 const totalItems = computed(() => {
-  return cartItems.value.reduce((sum, item) => sum + item.quantity, 0)
+  return cart.value?.totalItems || 0
 })
 
 const isAllSelected = computed(() => {
-  return cartItems.value.length > 0 && cartItems.value.every(item => item.selected)
+  const items = cart.value?.cartItems || []
+  return items.length > 0 && items.every(item => selectedItems.value.has(item.id))
 })
 
 // Sync selectAll with isAllSelected
@@ -306,19 +265,13 @@ watch(isAllSelected, (newValue) => {
 }, { immediate: true })
 
 const subtotal = computed(() => {
-  return selectedItems.value.reduce((sum, item) => {
-    const price = item.salePrice || item.price || 0
-    return sum + (price * item.quantity)
+  return selectedCartItems.value.reduce((sum, item) => {
+    return sum + (item.price * item.quantity)
   }, 0)
 })
 
 const discount = computed(() => {
-  return selectedItems.value.reduce((sum, item) => {
-    if (item.originalPrice && item.salePrice) {
-      return sum + ((item.originalPrice - item.salePrice) * item.quantity)
-    }
-    return sum
-  }, 0)
+  return 0 // Calculate if you have originalPrice vs sale price
 })
 
 const shippingFee = computed(() => {
@@ -337,42 +290,60 @@ const formatPrice = (price: number) => {
   }).format(price)
 }
 
-const increaseQuantity = (itemId: string | number) => {
-  const item = cartItems.value.find(i => i.id === itemId)
-  if (item && item.quantity < (item.stock || 99)) {
-    item.quantity++
-  }
+const getImageUrl = (imageUrl: string) => {
+  if (!imageUrl) return '/images/placeholder.png'
+  return imageUrl.startsWith('http') ? imageUrl : `${API_BASE_URL}${imageUrl}`
 }
 
-const decreaseQuantity = (itemId: string | number) => {
-  const item = cartItems.value.find(i => i.id === itemId)
-  if (item && item.quantity > 1) {
-    item.quantity--
-  }
-}
-
-const updateQuantity = (itemId: string | number, quantity: number) => {
-  const item = cartItems.value.find(i => i.id === itemId)
+const increaseQuantity = async (cartItemId: number) => {
+  const item = cart.value?.cartItems?.find(i => i.id === cartItemId)
   if (item) {
-    const newQuantity = Math.max(1, Math.min(quantity, item.stock || 99))
-    item.quantity = newQuantity
+    await updateCartItem(cartItemId, item.quantity + 1)
   }
 }
 
-const removeItem = (itemId: string | number) => {
-  const index = cartItems.value.findIndex(i => i.id === itemId)
-  if (index !== -1) {
-    if (confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
-      cartItems.value.splice(index, 1)
+const decreaseQuantity = async (cartItemId: number) => {
+  const item = cart.value?.cartItems?.find(i => i.id === cartItemId)
+  if (item && item.quantity > 1) {
+    await updateCartItem(cartItemId, item.quantity - 1)
+  }
+}
+
+const updateQuantity = async (cartItemId: number, quantity: number) => {
+  const item = cart.value?.cartItems?.find(i => i.id === cartItemId)
+  if (item) {
+    const newQuantity = Math.max(1, Math.min(quantity, item.inStock || 99))
+    if (newQuantity !== item.quantity) {
+      await updateCartItem(cartItemId, newQuantity)
+    }
+  }
+}
+
+const removeItem = async (cartItemId: number) => {
+  if (confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+    const success = await removeFromCart(cartItemId)
+    if (success) {
+      selectedItems.value.delete(cartItemId)
     }
   }
 }
 
 const toggleSelectAll = () => {
-  const newValue = !isAllSelected.value
-  cartItems.value.forEach(item => {
-    item.selected = newValue
-  })
+  if (isAllSelected.value) {
+    // Deselect all
+    selectedItems.value.clear()
+  } else {
+    // Select all
+    cart.value?.cartItems?.forEach(item => selectedItems.value.add(item.id))
+  }
+}
+
+const toggleItemSelection = (cartItemId: number) => {
+  if (selectedItems.value.has(cartItemId)) {
+    selectedItems.value.delete(cartItemId)
+  } else {
+    selectedItems.value.add(cartItemId)
+  }
 }
 
 const goToCheckout = () => {
@@ -380,9 +351,17 @@ const goToCheckout = () => {
     alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán')
     return
   }
-  // Implement checkout logic with selected items only
-  const selectedProducts = selectedItems.value
+  // Store selected items for checkout
+  const selectedProducts = selectedCartItems.value
   console.log('Checkout with:', selectedProducts)
   navigateTo('/checkout')
 }
+
+const clearAllCart = async () => {
+  if (confirm('Bạn có chắc muốn xóa toàn bộ giỏ hàng?')) {
+    await clearCart()
+    selectedItems.value.clear()
+  }
+}
 </script>
+

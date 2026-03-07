@@ -19,7 +19,7 @@ public class OrderMapper {
                 .id(order.getId())
                 .userId(order.getUserId())
                 .status(order.getStatus().toString())
-                .totalPrice(order.getTotalPrice())
+                .totalPrice(order.getTotalCost()) // Map totalCost to totalPrice for API compatibility
                 .orderItems(order.getOrderItems().stream()
                         .map(this::orderItemToDTO)
                         .collect(Collectors.toSet()))
@@ -35,7 +35,7 @@ public class OrderMapper {
                 .id(dto.getId())
                 .userId(dto.getUserId())
                 .status(Order.OrderStatus.valueOf(dto.getStatus()))
-                .totalPrice(dto.getTotalPrice())
+                .totalCost(dto.getTotalPrice()) // Map totalPrice to totalCost
                 .orderItems(dto.getOrderItems().stream()
                         .map(this::orderItemToEntity)
                         .collect(Collectors.toSet()))

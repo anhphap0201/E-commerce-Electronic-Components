@@ -29,7 +29,7 @@ public class CartService {
     @Transactional
     public CartDTO getCart(Long userId) {
         log.info("Retrieving cart for user: {}", userId);
-        Cart cart = cartRepository.findByUserId(userId)
+        Cart cart = cartRepository.findByUserIdWithDetails(userId)
                 .orElseGet(() -> createNewCart(userId));
         return cartMapper.toDTO(cart);
     }
@@ -46,7 +46,7 @@ public class CartService {
     public CartDTO addToCart(Long userId, CartItemDTO cartItemDTO) {
         log.info("Adding item to cart for user: {} - variant: {}", userId, cartItemDTO.getProductVariantId());
 
-        Cart cart = cartRepository.findByUserId(userId)
+        Cart cart = cartRepository.findByUserIdWithDetails(userId)
                 .orElseGet(() -> createNewCart(userId));
 
         ProductVariant variant = productVariantRepository.findById(cartItemDTO.getProductVariantId())
@@ -65,7 +65,6 @@ public class CartService {
                     .cart(cart)
                     .productVariant(variant)
                     .quantity(cartItemDTO.getQuantity())
-                    .price(variant.getPrice())
                     .build();
             cart.getCartItems().add(cartItemRepository.save(newItem));
             log.info("Added new item to cart for variant: {}", cartItemDTO.getProductVariantId());
@@ -78,7 +77,7 @@ public class CartService {
     public CartDTO updateCartItem(Long userId, Long cartItemId, Integer quantity) {
         log.info("Updating cart item: {} to quantity: {} for user: {}", cartItemId, quantity, userId);
 
-        Cart cart = cartRepository.findByUserId(userId)
+        Cart cart = cartRepository.findByUserIdWithDetails(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart not found for user"));
 
         CartItem cartItem = cartItemRepository.findById(cartItemId)
@@ -89,6 +88,7 @@ public class CartService {
         }
 
         if (quantity <= 0) {
+            cart.getCartItems().removeIf(item -> item.getId().equals(cartItemId));
             cartItemRepository.delete(cartItem);
             log.info("Deleted cart item: {}", cartItemId);
         } else {
@@ -97,14 +97,14 @@ public class CartService {
             log.info("Updated cart item: {} quantity to: {}", cartItemId, quantity);
         }
 
-        return cartMapper.toDTO(cart);
+        return getFreshCartDTO(cart.getId());
     }
 
     @Transactional
     public CartDTO removeFromCart(Long userId, Long cartItemId) {
         log.info("Removing item: {} from cart for user: {}", cartItemId, userId);
 
-        Cart cart = cartRepository.findByUserId(userId)
+        Cart cart = cartRepository.findByUserIdWithDetails(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart not found for user"));
 
         CartItem cartItem = cartItemRepository.findById(cartItemId)
@@ -114,15 +114,22 @@ public class CartService {
             throw new IllegalArgumentException("Cart item does not belong to user's cart");
         }
 
+        cart.getCartItems().removeIf(item -> item.getId().equals(cartItemId));
         cartItemRepository.delete(cartItem);
-        return cartMapper.toDTO(cart);
+        return getFreshCartDTO(cart.getId());
+    }
+
+    private CartDTO getFreshCartDTO(Long cartId) {
+        Cart refreshedCart = cartRepository.findByIdWithDetails(cartId)
+                .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
+        return cartMapper.toDTO(refreshedCart);
     }
 
     @Transactional
     public void clearCart(Long userId) {
         log.info("Clearing cart for user: {}", userId);
 
-        Cart cart = cartRepository.findByUserId(userId)
+        Cart cart = cartRepository.findByUserIdWithDetails(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart not found for user"));
 
         cart.getCartItems().clear();

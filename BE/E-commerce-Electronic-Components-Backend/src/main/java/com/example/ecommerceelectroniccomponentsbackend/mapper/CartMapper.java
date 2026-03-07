@@ -49,7 +49,10 @@ public class CartMapper {
                 .quantity(cartItem.getQuantity())
                 .price(cartItem.getPrice())
                 .totalPrice(cartItem.getTotalPrice())
+                .productName(cartItem.getProductVariant().getProduct().getName())
                 .variantName(cartItem.getProductVariant().getVariantName())
+                .imageUrl(cartItem.getProductVariant().getImageUrl())
+                .inStock(cartItem.getProductVariant().getInStock())
                 .build();
     }
 
@@ -59,7 +62,6 @@ public class CartMapper {
         CartItem cartItem = new CartItem();
         cartItem.setId(dto.getId());
         cartItem.setQuantity(dto.getQuantity());
-        cartItem.setPrice(dto.getPrice());
         return cartItem;
     }
 }

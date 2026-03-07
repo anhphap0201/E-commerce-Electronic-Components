@@ -33,6 +33,8 @@ public class Payment {
 
     private String transactionId;
 
+    private String paymentMethod;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

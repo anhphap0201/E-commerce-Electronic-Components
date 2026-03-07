@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/product")
+@RequestMapping("/api/products")
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class ProductController {
     private final ProductService productService;
@@ -20,6 +20,13 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<List<ProductDTO>> getAllProducts() {
         return ResponseEntity.ok(productService.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductDTO> getProductById(@PathVariable Long id) {
+        return productService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping

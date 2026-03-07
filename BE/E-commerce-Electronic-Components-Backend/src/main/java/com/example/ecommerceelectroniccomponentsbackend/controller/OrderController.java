@@ -1,5 +1,6 @@
 package com.example.ecommerceelectroniccomponentsbackend.controller;
 
+import com.example.ecommerceelectroniccomponentsbackend.dto.CreateOrderRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.OrderDTO;
 import com.example.ecommerceelectroniccomponentsbackend.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +27,11 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<OrderDTO> createOrder() {
-        OrderDTO order = orderService.createOrderFromCart(getCurrentUserId());
+    public ResponseEntity<OrderDTO> createOrder(@RequestBody(required = false) CreateOrderRequest request) {
+        if (request == null) {
+            request = new CreateOrderRequest();
+        }
+        OrderDTO order = orderService.createOrderFromCart(getCurrentUserId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(order);
     }
 

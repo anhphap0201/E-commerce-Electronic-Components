@@ -31,6 +31,9 @@ public class ProductVariant {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(columnDefinition = "TEXT")
+    private String specifications;
+
     @Column(name = "image_url")
     private String imageUrl;
 

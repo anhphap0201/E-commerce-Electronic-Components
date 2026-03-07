@@ -21,18 +21,33 @@ public class CartController {
 
     private Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return Long.parseLong(auth.getName());
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            return null;
+        }
+        try {
+            return Long.parseLong(auth.getName());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @GetMapping
     public ResponseEntity<CartDTO> getCart() {
-        CartDTO cart = cartService.getCart(getCurrentUserId());
+        Long userId = getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        CartDTO cart = cartService.getCart(userId);
         return ResponseEntity.ok(cart);
     }
 
     @PostMapping("/items")
     public ResponseEntity<CartDTO> addToCart(@Valid @RequestBody CartItemDTO cartItemDTO) {
-        CartDTO updatedCart = cartService.addToCart(getCurrentUserId(), cartItemDTO);
+        Long userId = getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        CartDTO updatedCart = cartService.addToCart(userId, cartItemDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(updatedCart);
     }
 
@@ -40,19 +55,31 @@ public class CartController {
     public ResponseEntity<CartDTO> updateCartItem(
             @PathVariable Long cartItemId,
             @RequestParam Integer quantity) {
-        CartDTO updatedCart = cartService.updateCartItem(getCurrentUserId(), cartItemId, quantity);
+        Long userId = getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        CartDTO updatedCart = cartService.updateCartItem(userId, cartItemId, quantity);
         return ResponseEntity.ok(updatedCart);
     }
 
     @DeleteMapping("/items/{cartItemId}")
     public ResponseEntity<CartDTO> removeFromCart(@PathVariable Long cartItemId) {
-        CartDTO updatedCart = cartService.removeFromCart(getCurrentUserId(), cartItemId);
+        Long userId = getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        CartDTO updatedCart = cartService.removeFromCart(userId, cartItemId);
         return ResponseEntity.ok(updatedCart);
     }
 
     @DeleteMapping
     public ResponseEntity<String> clearCart() {
-        cartService.clearCart(getCurrentUserId());
+        Long userId = getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        cartService.clearCart(userId);
         return ResponseEntity.ok("Cart cleared successfully");
     }
 }

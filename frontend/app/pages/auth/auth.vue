@@ -245,10 +245,12 @@ const handleLogin = async () => {
     await nextTick()
     setTimeout(() => navigateTo('/'), 300)
   } catch (err: any) {
-    error(
-      'Đăng nhập thất bại',
-      'Email hoặc mật khẩu không đúng'
-    )
+    // Read detailed error from backend response
+    const errorMessage = err.data?.error 
+      || err.data?.message 
+      || (err.data && typeof err.data === 'object' ? Object.values(err.data).join(', ') : null)
+      || 'Đã có lỗi xảy ra, vui lòng thử lại'
+    error('Đăng nhập thất bại', errorMessage)
   }
 }
 
@@ -272,10 +274,11 @@ const handleRegister = async () => {
     activeTab.value = 'login'
     registerData.value = { fullName: '', email: '', password: '', confirmPassword: '' }
   } catch (err: any) {
-    error(
-      'Đăng ký thất bại',
-      err.data?.message || err.message || 'Đã có lỗi xảy ra'
-    )
+    const errorMessage = err.data?.error 
+      || err.data?.message 
+      || (err.data && typeof err.data === 'object' ? Object.values(err.data).join(', ') : null)
+      || 'Đã có lỗi xảy ra, vui lòng thử lại'
+    error('Đăng ký thất bại', errorMessage)
   }
 }
 </script>

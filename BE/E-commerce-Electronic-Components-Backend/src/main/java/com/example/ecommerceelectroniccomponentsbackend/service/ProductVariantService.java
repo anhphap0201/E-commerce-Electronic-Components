@@ -33,6 +33,7 @@ public class ProductVariantService {
         
         variant.setVariantName(updatedVariant.getVariantName());
         variant.setDescription(updatedVariant.getDescription());
+        variant.setSpecifications(updatedVariant.getSpecifications());
         variant.setImageUrl(updatedVariant.getImageUrl());
         variant.setPrice(updatedVariant.getPrice());
         variant.setDiscountPrice(updatedVariant.getDiscountPrice());
@@ -51,6 +52,7 @@ public class ProductVariantService {
         dto.setId(variant.getId());
         dto.setVariantName(variant.getVariantName());
         dto.setDescription(variant.getDescription());
+        dto.setSpecifications(variant.getSpecifications());
         dto.setImageUrl(variant.getImageUrl());
         dto.setPrice(variant.getPrice());
         dto.setDiscountPrice(variant.getDiscountPrice());

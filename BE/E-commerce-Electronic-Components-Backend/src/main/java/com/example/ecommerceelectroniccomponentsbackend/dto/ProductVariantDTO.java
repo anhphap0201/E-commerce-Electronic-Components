@@ -16,6 +16,8 @@ public class ProductVariantDTO {
     private String productName;
     private String variantName;
     private String description;
+    private String specifications;
+    private String imageUrl;
     private BigDecimal price;
     private BigDecimal discountPrice;
     private Integer inStock;

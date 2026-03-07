@@ -41,8 +41,6 @@ public class ProductService {
             Product product = existingProduct.get();
             product.setName(updatedDTO.getName());
             product.setSlug(updatedDTO.getSlug());
-            product.setShortDescription(updatedDTO.getShortDescription());
-            product.setDescription(updatedDTO.getDescription());
             product.setAvgRating(updatedDTO.getAvgRating());
             product.setSoldQuantity(updatedDTO.getSoldQuantity());
             Product saved = productRepository.save(product);

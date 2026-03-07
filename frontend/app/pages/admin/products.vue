@@ -13,7 +13,7 @@
             <h1 class="text-3xl font-bold text-gray-900">Quản lý sản phẩm</h1>
             <p class="text-gray-600 mt-1">
               <span v-if="!selectedProduct">Tổng số: {{ products.length }} sản phẩm</span>
-              <span v-else>{{ selectedProduct.name }} - {{ variants.length }} biến thể</span>
+              <span v-else>{{ selectedProduct.name }} - {{ variants.length }} phân loại</span>
             </p>
           </div>
         </div>
@@ -36,7 +36,7 @@
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            Thêm biến thể
+            Thêm phân loại
           </button>
         </div>
       </div>
@@ -47,7 +47,7 @@
           <input
             v-model="searchQuery"
             type="text"
-            :placeholder="selectedProduct ? 'Tìm kiếm biến thể...' : 'Tìm kiếm sản phẩm...'"
+            :placeholder="selectedProduct ? 'Tìm kiếm phân loại...' : 'Tìm kiếm sản phẩm...'"
             class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#09f]"
           />
           <svg class="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,7 +65,7 @@
               <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Sản phẩm</th>
               <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Danh mục</th>
               <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Khoảng giá</th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Biến thể</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">phân loại</th>
               <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Tồn kho</th>
               <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase">Thao tác</th>
             </tr>
@@ -109,7 +109,7 @@
               </td>
               <td class="px-6 py-4">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                  {{ product.variants?.length || 0 }} biến thể
+                  {{ product.variants?.length || 0 }} phân loại
                 </span>
               </td>
               <td class="px-6 py-4">
@@ -125,7 +125,7 @@
                   <button
                     @click="selectProduct(product)"
                     class="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                    title="Xem biến thể"
+                    title="Xem phân loại"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -157,7 +157,7 @@
             </div>
             <div>
               <h2 class="text-lg font-bold text-gray-900">{{ selectedProduct.name }}</h2>
-              <p class="text-sm text-gray-600">{{ selectedProduct.shortDescription || 'Chưa có mô tả ngắn' }}</p>
+              <p class="text-sm text-gray-600">{{ selectedProduct.variants?.length || 0 }} phân loại</p>
               <div class="flex gap-2 mt-1">
                 <span 
                   v-for="cat in selectedProduct.categories" 
@@ -175,7 +175,7 @@
           <thead class="bg-gray-50 border-b border-gray-200">
             <tr>
               <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">ID</th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Tên biến thể</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Tên phân loại</th>
               <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Giá</th>
               <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Giá KM</th>
               <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Tồn kho</th>
@@ -248,7 +248,7 @@
             </tr>
             <tr v-if="filteredVariants.length === 0">
               <td colspan="7" class="px-6 py-12 text-center text-gray-500">
-                Chưa có biến thể nào. Nhấn "Thêm biến thể" để tạo mới.
+                Chưa có phân loại nào. Nhấn "Thêm phân loại" để tạo mới.
               </td>
             </tr>
           </tbody>
@@ -264,13 +264,13 @@
         <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
           <div class="p-6 border-b border-gray-200">
             <h2 class="text-2xl font-bold text-gray-900">
-              {{ isEditMode ? 'Sửa biến thể' : 'Thêm biến thể mới' }}
+              {{ isEditMode ? 'Sửa phân loại' : 'Thêm phân loại mới' }}
             </h2>
             <p class="text-sm text-gray-500 mt-1">Sản phẩm: {{ selectedProduct?.name }}</p>
           </div>
           <div class="p-6 space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Tên biến thể *</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Tên phân loại *</label>
               <input
                 v-model="formData.variantName"
                 type="text"
@@ -284,8 +284,18 @@
                 v-model="formData.description"
                 rows="3"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#09f]"
-                placeholder="Mô tả chi tiết về biến thể..."
+                placeholder="Mô tả chi tiết về phân loại..."
               />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Thông số kỹ thuật</label>
+              <textarea
+                v-model="formData.specifications"
+                rows="3"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#09f]"
+                placeholder="VD: Vi điều khiển: ATmega328P | Điện áp: 5V | Digital I/O: 14"
+              />
+              <p class="text-xs text-gray-500 mt-1">Dùng dấu | để phân cách các thông số. VD: Tên: Giá trị | Tên: Giá trị</p>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -332,7 +342,7 @@
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Ảnh biến thể</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Ảnh phân loại</label>
               <div v-if="formData.imageUrl && !selectedFile" class="mb-2">
                 <img :src="`http://localhost:8080${formData.imageUrl}`" alt="Preview" class="w-32 h-32 object-cover rounded-lg border">
                 <p class="text-xs text-green-600 mt-1">Ảnh hiện tại</p>
@@ -388,6 +398,7 @@ const saving = ref(false)
 const formData = ref({
   variantName: '',
   description: '',
+  specifications: '',
   price: 0,
   discountPrice: 0,
   inStock: 0,
@@ -467,6 +478,7 @@ const openCreateVariantModal = () => {
   formData.value = {
     variantName: '',
     description: '',
+    specifications: '',
     price: 0,
     discountPrice: 0,
     inStock: 0,
@@ -483,6 +495,7 @@ const openEditVariantModal = (variant: any) => {
   formData.value = {
     variantName: variant.variantName || '',
     description: variant.description || '',
+    specifications: variant.specifications || '',
     price: variant.price || 0,
     discountPrice: variant.discountPrice || 0,
     inStock: variant.inStock || 0,
@@ -542,14 +555,14 @@ const saveVariant = async () => {
         method: 'PUT',
         body: variantData
       })
-      alert('Cập nhật biến thể thành công!')
+      alert('Cập nhật phân loại thành công!')
     } else {
       // Create - need to call API that creates variant for a product
       await $fetch(`${API_BASE_URL}/product-variants`, {
         method: 'POST',
         body: variantData
       })
-      alert('Thêm biến thể thành công!')
+      alert('Thêm phân loại thành công!')
     }
 
     closeModal()
@@ -562,20 +575,20 @@ const saveVariant = async () => {
     }
   } catch (error: any) {
     console.error('Error saving variant:', error)
-    alert('Lỗi: ' + (error.message || 'Không thể lưu biến thể'))
+    alert('Lỗi: ' + (error.message || 'Không thể lưu phân loại'))
   } finally {
     saving.value = false
   }
 }
 
 const confirmDeleteVariant = async (variant: any) => {
-  if (!confirm(`Bạn có chắc muốn xóa biến thể "${variant.variantName}"?`)) return
+  if (!confirm(`Bạn có chắc muốn xóa phân loại "${variant.variantName}"?`)) return
 
   try {
     await $fetch(`${API_BASE_URL}/product-variants/${variant.id}`, {
       method: 'DELETE'
     })
-    alert('Xóa biến thể thành công!')
+    alert('Xóa phân loại thành công!')
     
     // Refresh
     await fetchProducts()
@@ -585,7 +598,7 @@ const confirmDeleteVariant = async (variant: any) => {
     }
   } catch (error) {
     console.error('Error deleting variant:', error)
-    alert('Lỗi khi xóa biến thể')
+    alert('Lỗi khi xóa phân loại')
   }
 }
 

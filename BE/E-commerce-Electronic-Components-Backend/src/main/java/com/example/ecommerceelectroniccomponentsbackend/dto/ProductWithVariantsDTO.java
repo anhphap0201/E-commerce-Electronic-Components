@@ -16,8 +16,6 @@ public class ProductWithVariantsDTO {
     private Long id;
     private String name;
     private String slug;
-    private String shortDescription;
-    private String description;
     private Double avgRating;
     private Integer soldQuantity;
     

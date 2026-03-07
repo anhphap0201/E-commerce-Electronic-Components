@@ -27,8 +27,8 @@
             <!-- Thumbnail Images -->
             <div class="grid grid-cols-4 gap-4">
               <div
-                v-for="(image, index) in product.images"
-                :key="index"
+                v-for="(image, idx) in product.images"
+                :key="idx"
                 @click="selectedImage = image"
                 :class="[
                   'aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 transition-all duration-200',
@@ -37,7 +37,7 @@
               >
                 <img 
                   :src="image" 
-                  :alt="`${product.name} - ${index + 1}`"
+                  :alt="`${product.name} - ${Number(idx) + 1}`"
                   class="w-full h-full object-contain p-2"
                 />
               </div>
@@ -52,9 +52,9 @@
               <div class="flex items-center gap-4">
                 <div class="flex items-center gap-1">
                   <span v-for="i in 5" :key="i" class="text-yellow-400 text-lg">
-                    {{ i <= product.rating ? '★' : '☆' }}
+                    {{ i <= (reviewSummary?.averageRating || 0) ? '★' : '☆' }}
                   </span>
-                  <span class="text-sm text-gray-600 ml-2">({{ product.reviewCount }} đánh giá)</span>
+                  <span class="text-sm text-gray-600 ml-2">({{ reviewSummary?.totalReviews || 0 }} đánh giá)</span>
                 </div>
                 <span class="text-sm text-gray-600">|</span>
                 <span class="text-sm text-gray-600">Đã bán: {{ product.sold }}</span>
@@ -86,7 +86,7 @@
             <!-- Variant Selector -->
             <div v-if="product.variants && product.variants.length > 0" class="space-y-3">
               <label class="text-gray-700 font-medium block">
-                Chọn biến thể: 
+                Chọn phân loại: 
                 <span v-if="product.variants.length > 1" class="text-gray-500 text-sm">({{ product.variants.length }} lựa chọn)</span>
               </label>
               <div class="flex flex-wrap gap-3">
@@ -135,19 +135,16 @@
                   </div>
                 </button>
               </div>
-              <p v-if="selectedVariant?.description" class="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                <strong>{{ selectedVariant.variantName }}:</strong> {{ selectedVariant.description }}
-              </p>
             </div>
 
             <!-- Quantity Selector -->
             <div v-if="currentStock > 0">
-              <label class="text-gray-700 font-medium block mb-2">Số lượng:</label>
-              <div class="flex items-center gap-4">
+              <label class="text-gray-700 font-small block mb-2">Số lượng:</label>
+              <div class="flex items-center gap-2">
                 <div class="flex items-center border-2 border-gray-300 rounded-xl overflow-hidden">
                   <button 
                     @click="decreaseQuantity"
-                    class="w-12 h-12 flex items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors"
+                    class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors"
                     :disabled="quantity <= 1"
                   >
                     <span class="text-xl">−</span>
@@ -157,11 +154,11 @@
                     type="number" 
                     min="1" 
                     :max="currentStock"
-                    class="w-16 h-12 text-center font-semibold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                    class="w-8 h-8 text-center font-semibold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
                   />
                   <button   
                     @click="increaseQuantity"
-                    class="w-12 h-12 flex items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors"
+                    class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors"
                     :disabled="quantity >= currentStock"
                   >
                     <span class="text-xl">+</span>
@@ -175,19 +172,20 @@
               <button 
                 v-if="currentStock > 0"
                 @click="addToCart"
-                class="flex-1  text-black py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:bg-gray-200 hover:shadow-xl hover:scale-105 active:scale-95 bg-gray-100"
-
+                :disabled="cartLoading"
+                class="flex-1  text-black py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:bg-gray-200 hover:shadow-xl hover:scale-105 active:scale-95 bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                
-                Thêm vào giỏ hàng
+                <span v-if="cartLoading">Đang thêm...</span>
+                <span v-else>Thêm vào giỏ hàng</span>
               </button>
               <button 
                 v-if="currentStock > 0"
                 @click="buyNow"
-                class="flex-1 bg-gradient-to-r from-[#09f] to-[#0077cc] text-white py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
-
+                :disabled="cartLoading"
+                class="flex-1 bg-gradient-to-r from-[#09f] to-[#0077cc] text-white py-4 rounded-xl font-semibold text-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Mua ngay
+                <span v-if="cartLoading">Đang xử lý...</span>
+                <span v-else>Mua ngay</span>
               </button>
               <button 
                 v-if="currentStock > 0"
@@ -218,31 +216,6 @@
                 Hết hàng
               </button>
             </div>
-
-            <!-- Warranty & Policies -->
-            <div class="border-t border-gray-200 pt-6 space-y-3">
-              <div class="flex items-start gap-3">
-                
-                <div>
-                  <p class="font-semibold text-gray-900">Bảo hành chính hãng</p>
-                  <p class="text-sm text-gray-600">{{ product.warranty }} tháng</p>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                
-                <div>
-                  <p class="font-semibold text-gray-900">Giao hàng nhanh chóng</p>
-                  <p class="text-sm text-gray-600">Giao hàng toàn quốc trong 2-3 ngày</p>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                
-                <div>
-                  <p class="font-semibold text-gray-900">Đổi trả dễ dàng</p>
-                  <p class="text-sm text-gray-600">Đổi trả trong vòng 7 ngày nếu có lỗi</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -268,34 +241,76 @@
             <!-- Description Tab -->
             <div v-if="activeTab === 'description'" class="prose max-w-none">
               <h3 class="text-xl font-bold text-gray-900 mb-4">Mô tả sản phẩm</h3>
-              
-              <!-- Short Description -->
-              <div v-if="product.shortDescription" class="bg-blue-50 border-l-4 border-[#09f] p-4 mb-6 rounded-r-lg">
-                <p class="text-gray-700 font-medium">{{ product.shortDescription }}</p>
-              </div>
-              
-              <!-- Full Description -->
-              <div class="text-gray-700 leading-relaxed whitespace-pre-line">{{ product.description }}</div>
-              
-              <!-- Selected Variant Description -->
-              <div v-if="selectedVariant?.description" class="mt-6 bg-gray-50 rounded-xl p-4">
-                <h4 class="font-semibold text-gray-900 mb-2">Thông tin biến thể: {{ selectedVariant.variantName }}</h4>
-                <p class="text-gray-600">{{ selectedVariant.description }}</p>
+              <!-- Multiple variants: show selected or all descriptions -->
+              <div>
+                
+                <!-- All Variant Descriptions -->
+                <div class="space-y-4">
+                  <div
+                    v-for="variant in product.variants"
+                    :key="variant.id"
+                    v-show="!selectedVariant || selectedVariant.id === variant.id"
+                    class="bg-gray-50 rounded-xl p-4"
+                  >
+                    <h4 class="font-semibold text-gray-900 mb-2">{{ variant.variantName }}</h4>
+                    <p class="text-gray-600">{{ variant.description || 'Chưa có mô tả.' }}</p>
+                  </div>
+                </div>
+                
+                <!-- Show all variants descriptions when none selected -->
+                <div v-if="!selectedVariant" class="space-y-4">
+                  <div
+                    v-for="variant in product.variants"
+                    :key="'desc-' + variant.id"
+                    class="bg-gray-50 rounded-xl p-4"
+                  >
+                    <h4 class="font-semibold text-gray-900 mb-2">{{ variant.variantName }}</h4>
+                    <p class="text-gray-600">{{ variant.description || 'Chưa có mô tả.' }}</p>
+                  </div>
+                </div>
               </div>
             </div>
 
             <!-- Specifications Tab -->
-            <div v-if="activeTab === 'specifications'" class="space-y-4">
+            <div v-if="activeTab === 'specifications'" class="space-y-6">
               <h3 class="text-xl font-bold text-gray-900 mb-4">Thông số kỹ thuật</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div
-                  v-for="(spec, index) in product.specifications"
-                  :key="index"
-                  class="bg-gray-50 rounded-lg p-4 flex justify-between"
-                >
-                  <span class="font-medium text-gray-700">{{ spec.label }}:</span>
-                  <span class="text-gray-900">{{ spec.value }}</span>
+              
+              <!-- Single variant or selected variant specs -->
+              <div v-if="currentSpecs.length > 0">
+                <h4 v-if="selectedVariant && product.variants?.length > 1" class="text-lg font-semibold text-gray-800 mb-3">
+                  {{ selectedVariant.variantName }}
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div
+                    v-for="(spec, index) in currentSpecs"
+                    :key="index"
+                    class="bg-gray-50 rounded-lg p-4 flex justify-between"
+                  >
+                    <span class="font-medium text-gray-700">{{ spec.label }}:</span>
+                    <span class="text-gray-900">{{ spec.value }}</span>
+                  </div>
                 </div>
+              </div>
+              
+              <!-- All variants specs when none selected -->
+              <div v-else-if="!selectedVariant && product.variants?.length > 1" class="space-y-6">
+                <div v-for="variant in product.variants" :key="'spec-' + variant.id">
+                  <h4 class="text-lg font-semibold text-gray-800 mb-3">{{ variant.variantName }}</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div
+                      v-for="(spec, index) in parseSpecifications(variant.specifications)"
+                      :key="index"
+                      class="bg-gray-50 rounded-lg p-4 flex justify-between"
+                    >
+                      <span class="font-medium text-gray-700">{{ spec.label }}:</span>
+                      <span class="text-gray-900">{{ spec.value }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div v-else class="text-gray-500 text-center py-8">
+                Chưa có thông số kỹ thuật cho sản phẩm này.
               </div>
             </div>
 
@@ -303,47 +318,102 @@
             <div v-if="activeTab === 'reviews'" class="space-y-6">
               <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-bold text-gray-900">Đánh giá sản phẩm</h3>
-                <button class="bg-[#09f] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#0077cc] transition-colors">
+                <button
+                  @click="openReviewForm"
+                  class="bg-[#09f] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#0077cc] transition-colors"
+                >
                   Viết đánh giá
                 </button>
+              </div>
+
+              <!-- Review Form -->
+              <div v-if="showReviewForm" class="bg-white border-2 border-[#09f] rounded-xl p-6 space-y-4">
+                <h4 class="text-lg font-bold text-gray-900">{{ editingReview ? 'Chỉnh sửa đánh giá' : 'Viết đánh giá' }}</h4>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Đánh giá của bạn</label>
+                  <div class="flex items-center gap-1">
+                    <button
+                      v-for="i in 5"
+                      :key="i"
+                      @click="reviewForm.rating = i"
+                      class="text-3xl transition-colors cursor-pointer"
+                      :class="i <= reviewForm.rating ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-300'"
+                    >
+                      ★
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Nhận xét</label>
+                  <textarea
+                    v-model="reviewForm.comment"
+                    rows="4"
+                    class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm transition-all duration-300 outline-none focus:border-[#09f] focus:shadow-[0_0_0_3px_rgba(0,153,255,0.1)] resize-none"
+                    placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."
+                  ></textarea>
+                </div>
+                <div class="flex gap-3">
+                  <button
+                    @click="submitReview"
+                    :disabled="reviewSubmitting || reviewForm.rating === 0"
+                    class="px-6 py-2 bg-[#09f] text-white rounded-lg font-medium hover:bg-[#0077cc] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {{ reviewSubmitting ? 'Đang gửi...' : (editingReview ? 'Cập nhật' : 'Gửi đánh giá') }}
+                  </button>
+                  <button
+                    @click="cancelReviewForm"
+                    class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                  >
+                    Hủy
+                  </button>
+                </div>
               </div>
 
               <!-- Rating Summary -->
               <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 flex items-center gap-8">
                 <div class="text-center">
-                  <div class="text-5xl font-bold text-[#09f]">{{ product.rating }}<span class="text-3xl">/5</span></div>
+                  <div class="text-5xl font-bold text-[#09f]">{{ reviewSummary?.averageRating || 0 }}<span class="text-3xl">/5</span></div>
                   <div class="flex items-center justify-center gap-1 mt-2">
                     <span v-for="i in 5" :key="i" class="text-yellow-400 text-xl">
-                      {{ i <= product.rating ? '★' : '☆' }}
+                      {{ i <= (reviewSummary?.averageRating || 0) ? '★' : '☆' }}
                     </span>
                   </div>
-                  <div class="text-sm text-gray-600 mt-1">{{ product.reviewCount }} đánh giá</div>
+                  <div class="text-sm text-gray-600 mt-1">{{ reviewSummary?.totalReviews || 0 }} đánh giá</div>
                 </div>
                 <div class="flex-1 space-y-2">
                   <div v-for="star in [5, 4, 3, 2, 1]" :key="star" class="flex items-center gap-3">
                     <span class="text-sm text-gray-600 w-8">{{ star }}⭐</span>
                     <div class="flex-1 bg-gray-200 rounded-full h-2">
                       <div 
-                        :style="{ width: `${(product.ratingDistribution?.[star] || 0)}%` }"
+                        :style="{ width: `${ratingPercent(star)}%` }"
                         class="bg-yellow-400 h-2 rounded-full transition-all duration-500"
                       ></div>
                     </div>
-                    <span class="text-sm text-gray-600 w-12">{{ product.ratingDistribution?.[star] || 0 }}%</span>
+                    <span class="text-sm text-gray-600 w-12">{{ ratingPercent(star) }}%</span>
                   </div>
                 </div>
               </div>
 
               <!-- Individual Reviews -->
-              <div class="space-y-4">
+              <div v-if="reviewsLoading" class="text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#09f] border-t-transparent mb-2"></div>
+                <p class="text-gray-600">Đang tải đánh giá...</p>
+              </div>
+
+              <div v-else-if="reviews.length === 0" class="text-center py-8">
+                <p class="text-gray-500">Chưa có đánh giá nào cho sản phẩm này.</p>
+              </div>
+
+              <div v-else class="space-y-4">
                 <div
-                  v-for="review in product.reviews"
+                  v-for="review in reviews"
                   :key="review.id"
                   class="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
                 >
                   <div class="flex items-start justify-between mb-3">
                     <div class="flex items-center gap-3">
                       <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
-                        {{ review.userName.charAt(0).toUpperCase() }}
+                        {{ (review.userName || 'U').charAt(0).toUpperCase() }}
                       </div>
                       <div>
                         <p class="font-semibold text-gray-900">{{ review.userName }}</p>
@@ -353,12 +423,27 @@
                               {{ i <= review.rating ? '★' : '☆' }}
                             </span>
                           </div>
-                          <span class="text-xs text-gray-500">{{ formatDate(review.date) }}</span>
+                          <span class="text-xs text-gray-500">{{ formatDate(new Date(review.createdAt)) }}</span>
                         </div>
                       </div>
                     </div>
+                    <!-- Edit/Delete for own reviews -->
+                    <div v-if="currentUserId && review.userId == currentUserId" class="flex gap-2">
+                      <button @click="editReview(review)" class="text-sm text-[#09f] hover:underline">Sửa</button>
+                      <button @click="deleteReview(review.id)" class="text-sm text-red-500 hover:underline">Xóa</button>
+                    </div>
                   </div>
                   <p class="text-gray-700 leading-relaxed">{{ review.comment }}</p>
+                </div>
+
+                <!-- Load More -->
+                <div v-if="reviewsHasMore" class="text-center pt-4">
+                  <button
+                    @click="loadMoreReviews"
+                    class="px-6 py-2 border-2 border-[#09f] text-[#09f] rounded-lg font-medium hover:bg-[#09f] hover:text-white transition-colors"
+                  >
+                    Xem thêm đánh giá
+                  </button>
                 </div>
               </div>
             </div>
@@ -412,11 +497,17 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useCart } from '~/composables/useCart'
 
 const route = useRoute()
 const productId = computed(() => route.params.id as string)
 
 const API_BASE_URL = 'http://localhost:8080'
+
+// Composables
+const { addToCart: addToCartComposable, loading: cartLoading } = useCart()
+const { getAuthHeader, isAuthenticated } = useAuth()
+const { success: showSuccess, error: showError } = useNotification()
 
 // Product data
 const product = ref<any>(null)
@@ -425,6 +516,18 @@ const selectedImage = ref('')
 const quantity = ref(1)
 const activeTab = ref('description')
 const isInWishlist = ref(false)
+
+// Reviews data
+const reviews = ref<any[]>([])
+const reviewSummary = ref<any>(null)
+const reviewsLoading = ref(false)
+const reviewsPage = ref(0)
+const reviewsHasMore = ref(false)
+const showReviewForm = ref(false)
+const reviewSubmitting = ref(false)
+const editingReview = ref<any>(null)
+const reviewForm = ref({ rating: 0, comment: '' })
+const currentUserId = ref<number | null>(null)
 
 const tabs = [
   { id: 'description', label: 'Mô tả' },
@@ -464,6 +567,27 @@ const currentStock = computed(() => {
     return selectedVariant.value.inStock || 0
   }
   return product.value?.totalStock || product.value?.variants?.reduce((sum: number, v: any) => sum + (v.inStock || 0), 0) || 0
+})
+
+// Parse specifications string "Key1: Value1 | Key2: Value2" into array of {label, value}
+const parseSpecifications = (specs: string | null | undefined) => {
+  if (!specs) return []
+  return specs.split('|').map((item: string) => {
+    const parts = item.split(':')
+    return {
+      label: (parts[0] || '').trim(),
+      value: (parts.slice(1).join(':') || '').trim()
+    }
+  }).filter((s: any) => s.label && s.value)
+}
+
+// Current specifications based on selected variant or first variant
+const currentSpecs = computed(() => {
+  const variant = selectedVariant.value || (product.value?.variants?.length === 1 ? product.value.variants[0] : null)
+  if (variant?.specifications) {
+    return parseSpecifications(variant.specifications)
+  }
+  return []
 })
 
 const selectVariant = (variant: any) => {
@@ -614,53 +738,49 @@ Hỗ trợ lập trình với Arduino IDE, ESP-IDF, MicroPython. Tiêu thụ đi
   }
 ]
 
-const relatedProducts = ref([
-  {
-    id: '3',
-    name: 'Raspberry Pi 4 Model B 4GB RAM',
-    img: '/images/raspberry-pi-5-6.jpg',
-    originalPrice: 1500000,
-    salePrice: 1200000,
-    discount: 20
-  },
-  {
-    id: '4',
-    name: 'LED RGB 5050 SMD - 100 chiếc',
-    img: '/images/images.jpg',
-    originalPrice: 100000,
-    salePrice: 70000,
-    discount: 30
-  },
-  {
-    id: '5',
-    name: 'Cảm biến nhiệt độ DHT11',
-    img: '/images/cam-bien-vat-can-hong-ngoai-fm52-5.jpg',
-    originalPrice: 50000,
-    salePrice: 35000,
-    discount: 30
-  },
-  {
-    id: '6',
-    name: 'Motor DC 6V giảm tốc',
-    img: '/images/dong-co-servo-sg90-180-do-rk7a-1.jpg',
-    originalPrice: 80000,
-    salePrice: 56000,
-    discount: 30
-  },
-  {
-    id: '7',
-    name: 'Relay 5V 1 kênh',
-    img: '/images/Relay.jpg',
-    originalPrice: 30000,
-    salePrice: 21000,
-    discount: 30
-  }
-])
+const relatedProducts = ref<any[]>([])
 
 onMounted(() => {
   // Load product data
   loadProduct()
+  // Load current user id
+  loadCurrentUser()
 })
+
+const fetchRelatedProducts = async (currentProduct: any) => {
+  try {
+    if (!currentProduct.categories || currentProduct.categories.length === 0) return
+    
+    const categoryId = currentProduct.categories[0].id
+    const data = await $fetch<any[]>(`${API_BASE_URL}/api/products/search/by-category-id/${categoryId}`)
+    
+    if (data) {
+      relatedProducts.value = data
+        .filter((p: any) => p.id !== currentProduct.id)
+        .slice(0, 10)
+        .map((p: any) => {
+          // Get first variant image or default image
+          let img = '/images/placeholder.png'
+          if (p.defaultImageUrl) {
+            img = p.defaultImageUrl.startsWith('http') ? p.defaultImageUrl : `${API_BASE_URL}${p.defaultImageUrl}`
+          } else if (p.variants?.[0]?.imageUrl) {
+            const vImg = p.variants[0].imageUrl
+            img = vImg.startsWith('http') ? vImg : `${API_BASE_URL}${vImg}`
+          }
+          
+          return {
+            id: p.id,
+            name: p.name,
+            img,
+            salePrice: p.minDiscountPrice ?? p.minPrice ?? 0,
+            originalPrice: p.minPrice ?? 0
+          }
+        })
+    }
+  } catch (error) {
+    console.error('Error fetching related products:', error)
+  }
+}
 
 const loadProduct = async () => {
   try {
@@ -671,23 +791,17 @@ const loadProduct = async () => {
       const p = data as any
       
       // Map API response to component format
-      // Description từ Product, ảnh và giá từ Variants
+      // Description và specifications từ Variants
       product.value = {
         id: p.id,
         name: p.name,
         slug: p.slug,
-        shortDescription: p.shortDescription || '',
-        description: p.description || p.shortDescription || 'Chưa có mô tả chi tiết cho sản phẩm này.',
         categories: p.categories || [],
         variants: p.variants || [],
         images: buildProductImages(p),
-        rating: p.avgRating || 4.5,
-        reviewCount: 0, // TODO: từ reviews API
+        rating: p.avgRating || 0,
         sold: p.soldQuantity || 0,
         warranty: 12,
-        specifications: [],
-        ratingDistribution: { 5: 70, 4: 20, 3: 7, 2: 2, 1: 1 },
-        reviews: [],
         // Price range info từ variants
         minPrice: p.minPrice,
         maxPrice: p.maxPrice,
@@ -697,6 +811,13 @@ const loadProduct = async () => {
         hasDiscount: p.hasDiscount,
         defaultImageUrl: p.defaultImageUrl
       }
+      
+      // Fetch reviews and summary for this product
+      fetchReviewSummary(p.id)
+      fetchReviews(p.id)
+      
+      // Fetch related products by category
+      fetchRelatedProducts(p)
       
       // Set selected image
       selectedImage.value = product.value.images[0] || '/images/placeholder.png'
@@ -760,7 +881,7 @@ const loadMockProduct = () => {
   const foundProduct = mockProducts.find(p => p.id === productId.value)
   if (foundProduct) {
     product.value = foundProduct
-    selectedImage.value = foundProduct.images[0]
+    selectedImage.value = foundProduct.images[0] || '/images/placeholder.png'
   }
 }
 
@@ -800,19 +921,191 @@ const decreaseQuantity = () => {
   }
 }
 
-const addToCart = () => {
+const addToCart = async () => {
   // Ensure variant is selected if there are multiple
   if (product.value.variants?.length > 1 && !selectedVariant.value) {
-    alert('Vui lòng chọn biến thể sản phẩm')
+    alert('Vui lòng chọn phân loại sản phẩm')
     return
   }
-  const variantId = selectedVariant.value?.id || product.value.variants?.[0]?.id
-  alert(`Đã thêm ${quantity.value} sản phẩm (variant: ${variantId}) vào giỏ hàng!`)
+  
+  // Check if stock is available
+  if (currentStock.value < quantity.value) {
+    alert('Số lượng trong kho không đủ')
+    return
+  }
+  
+  const variant = selectedVariant.value || product.value.variants?.[0]
+  const variantId = variant?.id
+  
+  if (!variantId) {
+    alert('Sản phẩm không hợp lệ')
+    return
+  }
+  
+  const price = variant.discountPrice || variant.price
+  
+  // Call API to add to cart (requires login)
+  const success = await addToCartComposable(variantId, quantity.value, price)
+  
+  if (success) {
+    // Reset quantity after successful add
+    quantity.value = 1
+  }
 }
 
-const buyNow = () => {
-  // Implement buy now logic
-  navigateTo('/checkout')
+const buyNow = async () => {
+  // Ensure variant is selected if there are multiple
+  if (product.value.variants?.length > 1 && !selectedVariant.value) {
+    alert('Vui lòng chọn phân loại sản phẩm')
+    return
+  }
+  
+  // Check if stock is available
+  if (currentStock.value < quantity.value) {
+    alert('Số lượng trong kho không đủ')
+    return
+  }
+  
+  const variant = selectedVariant.value || product.value.variants?.[0]
+  const variantId = variant?.id
+  
+  if (!variantId) {
+    alert('Sản phẩm không hợp lệ')
+    return
+  }
+  
+  const price = variant.discountPrice || variant.price
+  
+  // Call API to add to cart (requires login)
+  const success = await addToCartComposable(variantId, quantity.value, price)
+  
+  if (success) {
+    // Navigate to checkout
+    navigateTo('/checkout')
+  }
+}
+
+// ===== Review functions =====
+
+const loadCurrentUser = async () => {
+  if (!isAuthenticated.value) return
+  try {
+    const data = await $fetch<any>(`${API_BASE_URL}/api/auth/me`, {
+      headers: getAuthHeader()
+    })
+    currentUserId.value = data?.id || null
+  } catch {
+    currentUserId.value = null
+  }
+}
+
+const fetchReviews = async (prodId: number | string, page = 0) => {
+  reviewsLoading.value = true
+  try {
+    const data = await $fetch<any>(`${API_BASE_URL}/api/reviews/product/${prodId}`, {
+      params: { page, size: 10 }
+    })
+    if (page === 0) {
+      reviews.value = data.content || []
+    } else {
+      reviews.value.push(...(data.content || []))
+    }
+    reviewsPage.value = page
+    reviewsHasMore.value = !data.last
+  } catch (err) {
+    console.error('Error fetching reviews:', err)
+  } finally {
+    reviewsLoading.value = false
+  }
+}
+
+const fetchReviewSummary = async (prodId: number | string) => {
+  try {
+    const data = await $fetch<any>(`${API_BASE_URL}/api/reviews/product/${prodId}/summary`)
+    reviewSummary.value = data
+  } catch (err) {
+    console.error('Error fetching review summary:', err)
+  }
+}
+
+const ratingPercent = (star: number): number => {
+  if (!reviewSummary.value || !reviewSummary.value.totalReviews) return 0
+  const count = reviewSummary.value.ratingDistribution?.[star] || 0
+  return Math.round((count / reviewSummary.value.totalReviews) * 100)
+}
+
+const openReviewForm = () => {
+  if (!isAuthenticated.value) {
+    showError('Vui lòng đăng nhập để viết đánh giá')
+    return navigateTo('/auth/auth')
+  }
+  editingReview.value = null
+  reviewForm.value = { rating: 0, comment: '' }
+  showReviewForm.value = true
+}
+
+const cancelReviewForm = () => {
+  showReviewForm.value = false
+  editingReview.value = null
+  reviewForm.value = { rating: 0, comment: '' }
+}
+
+const submitReview = async () => {
+  if (reviewForm.value.rating === 0) return
+  reviewSubmitting.value = true
+  try {
+    if (editingReview.value) {
+      await $fetch(`${API_BASE_URL}/api/reviews/${editingReview.value.id}`, {
+        method: 'PUT',
+        headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
+        body: { rating: reviewForm.value.rating, comment: reviewForm.value.comment }
+      })
+      showSuccess('Đã cập nhật đánh giá')
+    } else {
+      await $fetch(`${API_BASE_URL}/api/reviews`, {
+        method: 'POST',
+        headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
+        body: { productId: product.value.id, rating: reviewForm.value.rating, comment: reviewForm.value.comment }
+      })
+      showSuccess('Đã gửi đánh giá')
+    }
+    cancelReviewForm()
+    // Reload reviews
+    fetchReviews(product.value.id)
+    fetchReviewSummary(product.value.id)
+  } catch (err: any) {
+    const msg = err?.data?.message || err?.message || 'Không thể gửi đánh giá'
+    showError(msg)
+  } finally {
+    reviewSubmitting.value = false
+  }
+}
+
+const editReview = (review: any) => {
+  editingReview.value = review
+  reviewForm.value = { rating: review.rating, comment: review.comment || '' }
+  showReviewForm.value = true
+}
+
+const deleteReview = async (reviewId: number) => {
+  if (!confirm('Bạn có chắc muốn xóa đánh giá này?')) return
+  try {
+    await $fetch(`${API_BASE_URL}/api/reviews/${reviewId}`, {
+      method: 'DELETE',
+      headers: getAuthHeader()
+    })
+    showSuccess('Đã xóa đánh giá')
+    fetchReviews(product.value.id)
+    fetchReviewSummary(product.value.id)
+  } catch (err: any) {
+    showError(err?.data?.message || 'Không thể xóa đánh giá')
+  }
+}
+
+const loadMoreReviews = () => {
+  if (product.value && reviewsHasMore.value) {
+    fetchReviews(product.value.id, reviewsPage.value + 1)
+  }
 }
 
 // Watch for route changes to reload product

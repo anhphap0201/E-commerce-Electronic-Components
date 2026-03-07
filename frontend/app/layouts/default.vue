@@ -52,12 +52,14 @@
                 </svg>
               </div>
               <!-- Cart Badge -->
-              <span 
-                v-if="cartItemCount > 0"
-                class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white"
-              >
-                {{ cartItemCount > 9 ? '9+' : cartItemCount }}
-              </span>
+              <ClientOnly>
+                <span 
+                  v-if="cartItemCount > 0"
+                  class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white"
+                >
+                  {{ cartItemCount > 9 ? '9+' : cartItemCount }}
+                </span>
+              </ClientOnly>
             </NuxtLink>
 
             <!-- User Menu or Login Button -->
@@ -269,16 +271,22 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useNotification } from '~/composables/useNotification'
+import { useCart } from '~/composables/useCart'
 
 const searchQuery = ref('')
 const showUserMenu = ref(false)
 
 const { user, isAuthenticated, logout, initializeAuth } = useAuth()
 const { success } = useNotification()
+const { cartItemCount, fetchCart } = useCart()
 
 // Force initialize on mount
 onMounted(() => {
   initializeAuth()
+  // Fetch cart if authenticated
+  if (isAuthenticated.value) {
+    fetchCart()
+  }
 })
 
 const isLoggedIn = computed(() => isAuthenticated.value)
@@ -289,13 +297,6 @@ const handleLogout = () => {
   success('Đăng xuất thành công', 'Hẹn gặp lại bạn!')
   navigateTo('/')
 }
-
-// Mock cart item count - replace with actual cart state management
-const cartItemCount = computed(() => {
-  // This should be replaced with actual cart data from store (Vuex/Pinia)
-  // For now, return a mock value
-  return 3
-})
 
 const popularKeywords = [
   'Arduino',

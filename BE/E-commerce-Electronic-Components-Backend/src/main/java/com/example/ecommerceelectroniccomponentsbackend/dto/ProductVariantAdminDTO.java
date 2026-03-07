@@ -18,6 +18,7 @@ public class ProductVariantAdminDTO {
     private String productSlug;
     private String variantName;
     private String description;
+    private String specifications;
     private String imageUrl; // Image URL for variant
     private BigDecimal price;
     private BigDecimal discountPrice;

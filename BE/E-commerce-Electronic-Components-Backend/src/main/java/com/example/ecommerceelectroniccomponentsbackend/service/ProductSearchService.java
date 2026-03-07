@@ -86,8 +86,6 @@ public class ProductSearchService {
         dto.setId(product.getId());
         dto.setName(product.getName());
         dto.setSlug(product.getSlug());
-        dto.setShortDescription(product.getShortDescription());
-        dto.setDescription(product.getDescription());
         dto.setAvgRating(product.getAvgRating());
         dto.setSoldQuantity(product.getSoldQuantity());
         dto.setCreatedAt(product.getCreatedAt());
@@ -183,6 +181,8 @@ public class ProductSearchService {
         dto.setProductName(variant.getProduct().getName());
         dto.setVariantName(variant.getVariantName());
         dto.setDescription(variant.getDescription());
+        dto.setSpecifications(variant.getSpecifications());
+        dto.setImageUrl(variant.getImageUrl());
         dto.setPrice(variant.getPrice());
         dto.setDiscountPrice(variant.getDiscountPrice());
         dto.setInStock(variant.getInStock());

@@ -36,6 +36,18 @@ public class User implements UserDetails {
     @Column(name = "full_name")
     private String fullName;
 
+    @Column(name = "phone")
+    private String phone;
+
+    @Column(name = "province")
+    private String province;
+
+    @Column(name = "ward")
+    private String ward;
+
+    @Column(name = "detailed_address")
+    private String detailedAddress;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     private Role role;

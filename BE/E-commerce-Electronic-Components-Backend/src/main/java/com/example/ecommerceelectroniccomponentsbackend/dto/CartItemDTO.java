@@ -29,5 +29,11 @@ public class CartItemDTO {
 
     private BigDecimal totalPrice;
 
+    private String productName;
+
     private String variantName;
+
+    private String imageUrl;
+
+    private Integer inStock;
 }

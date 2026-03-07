@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,6 +17,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(exclude = {"order"})
+@ToString(exclude = {"order"})
 public class OrderItem {
 
     @Id
@@ -32,7 +36,7 @@ public class OrderItem {
     @Column(nullable = false)
     private Integer quantity;
 
-    @Column(nullable = false)
+    @Column(name = "unit_price", nullable = false)
     private BigDecimal price;
 
     @Column(name = "created_at", updatable = false)

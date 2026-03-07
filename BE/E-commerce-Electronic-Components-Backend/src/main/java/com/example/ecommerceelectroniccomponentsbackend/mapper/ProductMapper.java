@@ -16,8 +16,6 @@ public class ProductMapper {
         dto.setId(product.getId());
         dto.setName(product.getName());
         dto.setSlug(product.getSlug());
-        dto.setShortDescription(product.getShortDescription());
-        dto.setDescription(product.getDescription());
         dto.setAvgRating(product.getAvgRating());
         dto.setSoldQuantity(product.getSoldQuantity());
         dto.setCreatedAt(product.getCreatedAt());
@@ -31,8 +29,6 @@ public class ProductMapper {
         product.setId(dto.getId());
         product.setName(dto.getName());
         product.setSlug(dto.getSlug());
-        product.setShortDescription(dto.getShortDescription());
-        product.setDescription(dto.getDescription());
         product.setAvgRating(dto.getAvgRating());
         product.setSoldQuantity(dto.getSoldQuantity());
         return product;

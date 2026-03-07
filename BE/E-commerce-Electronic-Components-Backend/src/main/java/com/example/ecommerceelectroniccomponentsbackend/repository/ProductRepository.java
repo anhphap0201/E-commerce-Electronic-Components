@@ -48,6 +48,27 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Tìm sản phẩm có giảm giá (qua variants)
     @Query("select distinct p from Product p join p.variants v where v.discountPrice is not null and v.discountPrice < v.price")
     Page<Product> findProductsWithDiscount(Pageable pageable);
+
+    // Top sản phẩm bán chạy nhất theo sold_quantity
+    List<Product> findTop10ByOrderBySoldQuantityDesc();
+
+    // Top sản phẩm đánh giá cao nhất (chỉ lấy sản phẩm có rating > 0)
+    @Query("select p from Product p where p.avgRating > 0 order by p.avgRating desc, p.soldQuantity desc")
+    List<Product> findTopRatedProducts(Pageable pageable);
+
+    // Tổng số lượng đã bán
+    @Query("select coalesce(sum(p.soldQuantity), 0) from Product p")
+    long sumTotalSoldQuantity();
+
+    // Rating trung bình tất cả sản phẩm (có rating > 0)
+    @Query("select coalesce(avg(p.avgRating), 0) from Product p where p.avgRating > 0")
+    double averageRating();
+
+    // Đếm sản phẩm theo khoảng rating
+    long countByAvgRatingBetween(double minRating, double maxRating);
+
+    // Đếm sản phẩm chưa có đánh giá
+    long countByAvgRating(double avgRating);
 }
 
 

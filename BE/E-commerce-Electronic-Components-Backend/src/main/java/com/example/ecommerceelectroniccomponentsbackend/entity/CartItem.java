@@ -4,10 +4,11 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "cart_items")
@@ -15,6 +16,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(exclude = {"cart"})
+@ToString(exclude = {"cart"})
 public class CartItem {
 
     @Id
@@ -33,27 +36,12 @@ public class CartItem {
     @Builder.Default
     private Integer quantity = 1;
 
-    @Column(nullable = false)
-    private BigDecimal price;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+    // Helper method to get price from product variant
+    public BigDecimal getPrice() {
+        return productVariant != null ? productVariant.getPrice() : BigDecimal.ZERO;
     }
 
     public BigDecimal getTotalPrice() {
-        return price.multiply(new BigDecimal(quantity));
+        return getPrice().multiply(new BigDecimal(quantity));
     }
 }

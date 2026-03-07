@@ -32,7 +32,7 @@ public class JwtDecoderConfig implements JwtDecoder {
         log.info("Decoding JWT Token");
         try {
             if (!jwtService.verifyToken(token)) {
-                throw new RuntimeException("Invalid token");
+                throw new JwtException("Invalid token");
             }
 
             if (Objects.isNull(nimbusJwtDecoder)) {
@@ -43,7 +43,7 @@ public class JwtDecoderConfig implements JwtDecoder {
                         .build();
             }
         } catch (ParseException | JOSEException e) {
-            throw new RuntimeException(e);
+            throw new JwtException("Failed to parse JWT token", e);
         }
         return nimbusJwtDecoder.decode(token);
     }
