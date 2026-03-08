@@ -25,6 +25,13 @@ public class OrderMapper {
                         .collect(Collectors.toSet()))
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
+                .lockerId(order.getLockerId())
+                .compartmentId(order.getCompartmentId())
+                .lockerOrderId(order.getLockerOrderId())
+                .senderOTP(order.getSenderOTP())
+                .recipientOTP(order.getRecipientOTP())
+                .deliveryStatus(order.getDeliveryStatus())
+                .shippingMethod(order.getShippingMethod())
                 .build();
     }
 
@@ -39,6 +46,7 @@ public class OrderMapper {
                 .orderItems(dto.getOrderItems().stream()
                         .map(this::orderItemToEntity)
                         .collect(Collectors.toSet()))
+                .deliveryStatus(dto.getDeliveryStatus())
                 .createdAt(dto.getCreatedAt())
                 .updatedAt(dto.getUpdatedAt())
                 .build();

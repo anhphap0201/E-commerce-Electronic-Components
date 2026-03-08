@@ -18,4 +18,7 @@ public class CreateOrderRequest {
     private String note;
     private String voucherCode;
     private BigDecimal discount;
+
+    // Smart Locker fields
+    private String lockerId;
 }

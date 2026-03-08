@@ -180,6 +180,52 @@
                 </span>
               </label>
             </div>
+
+            <!-- Smart Locker Selection -->
+            <div v-if="selectedShipping === 'smart_locker'" class="mt-6 space-y-4 border-t-2 border-gray-100 pt-6">
+              <h3 class="text-lg font-semibold text-gray-900">Chọn tủ nhận hàng</h3>
+
+              <!-- Locker Selection -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Chọn tủ thông minh</label>
+                <div v-if="loadingLockers" class="text-sm text-gray-500">Đang tải danh sách tủ...</div>
+                <div v-else-if="lockers.length === 0" class="text-sm text-red-500">Không có tủ nào đang hoạt động</div>
+                <div v-else class="space-y-2">
+                  <label
+                    v-for="locker in lockers"
+                    :key="locker.lockerId"
+                    :class="[
+                      'flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-300',
+                      selectedLocker === locker.lockerId
+                        ? 'border-[#09f] bg-blue-50'
+                        : 'border-gray-200 hover:border-[#09f]'
+                    ]"
+                    @click="selectLocker(locker.lockerId)"
+                  >
+                    <input
+                      type="radio"
+                      :value="locker.lockerId"
+                      :checked="selectedLocker === locker.lockerId"
+                      name="locker"
+                      class="w-4 h-4 text-[#09f] border-gray-300 focus:ring-[#09f] cursor-pointer"
+                    />
+                    <div>
+                      <p class="font-semibold text-gray-900 text-sm">{{ locker.locationName }}</p>
+                      <p class="text-xs text-gray-500">{{ locker.address }}</p>
+                      <p class="text-xs text-green-600">Trống {{ locker.availableCompartments }}/{{ locker.totalCompartments }} ngăn</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Selection Summary -->
+              <div v-if="selectedLocker" class="bg-green-50 border border-green-200 rounded-xl p-3">
+                <p class="text-sm text-green-700">
+                  <span class="font-semibold">✓ Đã chọn:</span>
+                  Tủ <span class="font-bold">{{ lockers.find(l => l.lockerId === selectedLocker)?.locationName }}</span>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -421,6 +467,14 @@ interface OrderItem {
 const { getAuthHeader } = useAuth()
 const { success: showSuccess, error: showError } = useNotification()
 const { cart, fetchCart } = useCart()
+const {
+  lockers,
+  loadingLockers,
+  selectedLocker,
+  fetchLockers,
+  selectLocker,
+  reset: resetLocker
+} = useSmartLocker()
 
 const profileLoading = ref(false)
 const cartLoading = ref(false)
@@ -502,6 +556,12 @@ const shippingMethods = [
     name: 'Giao hàng hỏa tốc',
     description: 'Giao hàng trong 24 giờ',
     fee: 80000
+  },
+  {
+    id: 'smart_locker',
+    name: 'Tủ thông minh (Smart Locker)',
+    description: 'Nhận hàng tại tủ khóa thông minh gần bạn',
+    fee: 15000
   }
 ]
 
@@ -580,12 +640,16 @@ const total = computed(() => {
 })
 
 const isFormValid = computed(() => {
-  return (
-    hasShippingProfile.value &&
+  const baseValid = hasShippingProfile.value &&
     orderItems.value.length > 0 &&
     selectedPayment.value !== '' &&
     selectedShipping.value !== ''
-  )
+
+  if (selectedShipping.value === 'smart_locker') {
+    return baseValid && !!selectedLocker.value
+  }
+
+  return baseValid
 })
 
 // Methods
@@ -705,13 +769,18 @@ const placeOrder = async () => {
 
   placingOrder.value = true
   try {
-    const orderBody = {
+    const orderBody: Record<string, any> = {
       paymentMethod: selectedPayment.value.toUpperCase(),
       shippingMethod: selectedShipping.value.toUpperCase(),
       shippingFee: shippingFee.value,
       discount: voucherDiscount.value,
       voucherCode: appliedVoucher.value?.code || null,
       note: null
+    }
+
+    // Only include locker fields when smart_locker is selected
+    if (selectedShipping.value === 'smart_locker') {
+      orderBody.lockerId = selectedLocker.value
     }
 
     // MoMo payment flow - create order and redirect to MoMo
@@ -769,5 +838,17 @@ watch(
     syncOrderItemsFromCart()
   },
   { deep: true }
+)
+
+// Fetch locker list when smart_locker is selected
+watch(
+  () => selectedShipping.value,
+  (newMethod) => {
+    if (newMethod === 'smart_locker') {
+      fetchLockers()
+    } else {
+      resetLocker()
+    }
+  }
 )
 </script>

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrderDTO {
 
     private Long id;
@@ -33,4 +35,13 @@ public class OrderDTO {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // Smart Locker fields
+    private String lockerId;
+    private String compartmentId;
+    private String lockerOrderId;
+    private String senderOTP;
+    private String recipientOTP;
+    private String deliveryStatus;
+    private String shippingMethod;
 }

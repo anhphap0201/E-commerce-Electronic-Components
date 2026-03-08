@@ -32,3 +32,6 @@ momo:
   api-url: https://test-payment.momo.vn/v2/gateway/api/create
   return-url: http://localhost:3000/payment/momo-return
   notify-url: http://localhost:8080/api/momo/ipn
+
+smart-locker:
+  api-url: http://localhost:8000

@@ -13,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/orders")
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -48,6 +50,11 @@ public class OrderController {
     public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long orderId) {
         OrderDTO order = orderService.getOrderById(orderId, getCurrentUserId());
         return ResponseEntity.ok(order);
+    }
+
+    @GetMapping("/delivery-status/{orderReference}")
+    public ResponseEntity<Map<String, Object>> getDeliveryStatus(@PathVariable String orderReference) {
+        return ResponseEntity.ok(orderService.getDeliveryStatusByReference(orderReference));
     }
 
     @PutMapping("/{orderId}/status")

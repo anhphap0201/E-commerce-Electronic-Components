@@ -2,6 +2,7 @@ package com.example.ecommerceelectroniccomponentsbackend.service;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.CreateOrderRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.OrderDTO;
+import com.example.ecommerceelectroniccomponentsbackend.dto.SmartLockerDTO;
 import com.example.ecommerceelectroniccomponentsbackend.entity.Cart;
 import com.example.ecommerceelectroniccomponentsbackend.entity.CartItem;
 import com.example.ecommerceelectroniccomponentsbackend.entity.Order;
@@ -19,6 +20,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -30,6 +36,7 @@ public class OrderService {
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
     private final OrderMapper orderMapper;
+    private final SmartLockerService smartLockerService;
 
     @Transactional
     public OrderDTO createOrderFromCart(Long userId, CreateOrderRequest request) {
@@ -109,6 +116,50 @@ public class OrderService {
             order.getOrderItems().add(orderItem);
         }
 
+        // Smart Locker integration
+        String shippingMethodValue = request.getShippingMethod() != null ? request.getShippingMethod().toUpperCase() : "STANDARD";
+        if ("SMART_LOCKER".equals(shippingMethodValue)) {
+            if (request.getLockerId() == null) {
+                throw new IllegalArgumentException("Locker ID is required for smart locker delivery");
+            }
+
+            order.setLockerId(request.getLockerId());
+
+            // Build locker order items
+            List<SmartLockerDTO.LockerOrderItem> lockerItems = cart.getCartItems().stream()
+                    .map(ci -> SmartLockerDTO.LockerOrderItem.builder()
+                            .name(ci.getProductVariant().getVariantName())
+                            .quantity(ci.getQuantity())
+                            .build())
+                    .toList();
+
+            SmartLockerDTO.LockerOrderRequest lockerRequest = SmartLockerDTO.LockerOrderRequest.builder()
+                    .userId(String.valueOf(userId))
+                    .lockerId(request.getLockerId())
+                    .orderInfo(SmartLockerDTO.LockerOrderInfo.builder()
+                            .items(lockerItems)
+                            .totalPrice(finalTotal.longValue())
+                            .notes(request.getNote())
+                            .build())
+                    .build();
+
+            try {
+                SmartLockerDTO.LockerOrderResponse lockerResponse = smartLockerService.createLockerOrder(lockerRequest);
+                order.setLockerOrderId(lockerResponse.getOrderId());
+                order.setCompartmentId(lockerResponse.getCompartmentId());
+                order.setSenderOTP(lockerResponse.getSenderOTP());
+                order.setRecipientOTP(lockerResponse.getRecipientOTP());
+                log.info("Smart locker order created: {}, compartment assigned: {}",
+                        lockerResponse.getOrderId(), lockerResponse.getCompartmentId());
+            } catch (IllegalStateException e) {
+                log.error("Failed to create smart locker order: {}", e.getMessage());
+                throw e;
+            } catch (Exception e) {
+                log.error("Failed to create smart locker order: {}", e.getMessage());
+                throw new IllegalStateException("Không thể đặt tủ thông minh. Vui lòng thử lại.");
+            }
+        }
+
         Order savedOrder = orderRepository.save(order);
         log.info("Order created with ID: {} and number: {} for user: {}", savedOrder.getId(), savedOrder.getOrderNumber(), userId);
 
@@ -164,6 +215,170 @@ public class OrderService {
         Order order = orderRepository.findByIdAndUserId(orderId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found or does not belong to user"));
         return orderMapper.toDTO(order);
+    }
+
+    @Transactional
+    public Map<String, Object> getDeliveryStatusByReference(String orderReference) {
+        log.info("Retrieving delivery status for reference: {}", orderReference);
+
+        String normalizedReference = orderReference == null ? "" : orderReference.trim();
+        if (normalizedReference.isEmpty()) {
+            throw new IllegalArgumentException("order_id is required");
+        }
+
+        Order order = resolveOrderByReference(normalizedReference)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+
+        String deliveryStatus = firstNonBlank(order.getDeliveryStatus(), mapInternalStatusToDeliveryStatus(order.getStatus()));
+        String recipientOTP = order.getRecipientOTP();
+        String senderOTP = order.getSenderOTP();
+        
+        String lockerOrderId = order.getLockerOrderId();
+        if (lockerOrderId != null && !lockerOrderId.isBlank() && !isCompletedDeliveryStatus(deliveryStatus)) {
+            try {
+                // Fetch all user orders from smart locker with delivery status and OTP
+                List<SmartLockerDTO.UserOrderResponse> userOrders = smartLockerService.getUserOrders(order.getUserId());
+                SmartLockerDTO.UserOrderResponse matchingOrder = userOrders.stream()
+                        .filter(smartOrder -> matchesAnyReference(smartOrder.getOrderId(), lockerOrderId, order.getOrderNumber(), normalizedReference))
+                        .findFirst()
+                        .orElse(null);
+                
+                if (matchingOrder != null) {
+                    if (matchingOrder.getDeliveryStatus() != null && !matchingOrder.getDeliveryStatus().isBlank()) {
+                        deliveryStatus = matchingOrder.getDeliveryStatus();
+                    }
+                    if (matchingOrder.getRecipientOTP() != null && !matchingOrder.getRecipientOTP().isBlank()) {
+                        recipientOTP = matchingOrder.getRecipientOTP();
+                    }
+                    if (matchingOrder.getSenderOTP() != null && !matchingOrder.getSenderOTP().isBlank()) {
+                        senderOTP = matchingOrder.getSenderOTP();
+                    }
+                    persistDeliverySync(order, deliveryStatus, recipientOTP, senderOTP);
+                }
+            } catch (IllegalStateException ex) {
+                log.warn("Smart locker API unavailable for user {}. Fallback to internal data. Reason: {}",
+                        order.getUserId(), ex.getMessage());
+            }
+        }
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("orderId", order.getId());
+        response.put("orderNumber", order.getOrderNumber());
+        response.put("lockerOrderId", order.getLockerOrderId());
+        response.put("deliveryStatus", deliveryStatus);
+        response.put("status", order.getStatus().name());
+        response.put("shippingMethod", order.getShippingMethod());
+        response.put("recipientOTP", recipientOTP);
+        response.put("senderOTP", senderOTP);
+        response.put("updatedAt", getEffectiveUpdatedAt(order));
+        return response;
+    }
+
+    private java.util.Optional<Order> resolveOrderByReference(String orderReference) {
+        if (orderReference.chars().allMatch(Character::isDigit)) {
+            try {
+                Long orderId = Long.parseLong(orderReference);
+                return orderRepository.findById(orderId);
+            } catch (NumberFormatException ex) {
+                // Fallback to order number lookup below if parsing overflows Long.
+            }
+        }
+        return orderRepository.findByOrderNumber(orderReference)
+                .or(() -> orderRepository.findByLockerOrderId(orderReference));
+    }
+
+    private boolean matchesAnyReference(String source, String... references) {
+        if (source == null || source.isBlank()) {
+            return false;
+        }
+        String normalizedSource = source.trim();
+        for (String reference : references) {
+            if (reference != null && !reference.isBlank() && normalizedSource.equalsIgnoreCase(reference.trim())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void persistDeliverySync(Order order, String deliveryStatus, String recipientOTP, String senderOTP) {
+        boolean changed = false;
+
+        if (!sameText(order.getDeliveryStatus(), deliveryStatus) && deliveryStatus != null && !deliveryStatus.isBlank()) {
+            order.setDeliveryStatus(deliveryStatus);
+            changed = true;
+        }
+        if (!sameText(order.getRecipientOTP(), recipientOTP) && recipientOTP != null && !recipientOTP.isBlank()) {
+            order.setRecipientOTP(recipientOTP);
+            changed = true;
+        }
+        if (!sameText(order.getSenderOTP(), senderOTP) && senderOTP != null && !senderOTP.isBlank()) {
+            order.setSenderOTP(senderOTP);
+            changed = true;
+        }
+
+        if (changed) {
+            orderRepository.save(order);
+        }
+    }
+
+    private boolean sameText(String left, String right) {
+        if (left == null && right == null) {
+            return true;
+        }
+        if (left == null || right == null) {
+            return false;
+        }
+        return left.equals(right);
+    }
+
+    private String firstNonBlank(String preferred, String fallback) {
+        if (preferred != null && !preferred.isBlank()) {
+            return preferred;
+        }
+        return fallback;
+    }
+
+    private boolean isCompletedDeliveryStatus(String deliveryStatus) {
+        if (deliveryStatus == null || deliveryStatus.isBlank()) {
+            return false;
+        }
+        String normalized = deliveryStatus.trim().toLowerCase(Locale.ROOT);
+        return "completed".equals(normalized);
+    }
+
+    private LocalDateTime getEffectiveUpdatedAt(Order order) {
+        if (order.getUpdatedAt() != null) {
+            return order.getUpdatedAt();
+        }
+        return order.getCreatedAt();
+    }
+
+    private String mapInternalStatusToDeliveryStatus(Order.OrderStatus status) {
+        if (status == null) {
+            return "unknown";
+        }
+        String mappedStatus;
+        switch (status) {
+            case PENDING:
+                mappedStatus = "pending";
+                break;
+            case CONFIRMED:
+                mappedStatus = "confirmed";
+                break;
+            case SHIPPED:
+                mappedStatus = "in_transit";
+                break;
+            case DELIVERED:
+                mappedStatus = "delivered";
+                break;
+            case CANCELLED:
+                mappedStatus = "cancelled";
+                break;
+            default:
+                mappedStatus = "unknown";
+                break;
+        }
+        return mappedStatus.toLowerCase(Locale.ROOT);
     }
 
     @Transactional

@@ -102,6 +102,25 @@ public class Order {
     @Column(name = "voucher_code")
     private String voucherCode;
 
+    // --- Smart Locker fields ---
+    @Column(name = "locker_id")
+    private String lockerId;
+
+    @Column(name = "compartment_id")
+    private String compartmentId;
+
+    @Column(name = "locker_order_id")
+    private String lockerOrderId;
+
+    @Column(name = "sender_otp")
+    private String senderOTP;
+
+    @Column(name = "recipient_otp")
+    private String recipientOTP;
+
+    @Column(name = "delivery_status")
+    private String deliveryStatus;
+
     // --- Timestamps ---
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

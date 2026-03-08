@@ -57,13 +57,18 @@
                 <span
                   :class="[
                     'px-3 py-1 rounded-full text-xs font-semibold',
-                    statusClass(order.status)
+                    statusClass(getDisplayStatus(order))
                   ]"
                 >
-                  {{ statusLabel(order.status) }}
+                  {{ statusLabel(getDisplayStatus(order)) }}
                 </span>
                 <span class="text-lg font-bold text-[#09f]">{{ formatPrice(order.totalPrice) }}</span>
               </div>
+            </div>
+
+            <div v-if="order.recipientOTP" class="mt-4 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-4">
+              <p class="text-xs text-blue-600 font-semibold uppercase mb-1">Mã OTP người nhận</p>
+              <p class="text-2xl font-bold text-blue-900 tracking-wider">{{ order.recipientOTP }}</p>
             </div>
 
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 gap-3">
@@ -80,7 +85,7 @@
                 </button>
 
                 <button
-                  v-if="canCancel(order.status)"
+                  v-if="canCancel(getDisplayStatus(order))"
                   @click="cancelOrder(order.id)"
                   :disabled="cancellingOrderIds.has(order.id)"
                   class="px-3 py-2 border border-red-300 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
@@ -92,6 +97,7 @@
           </div>
 
           <div v-if="expandedOrderIds.has(order.id)" class="border-t border-gray-100 bg-gray-50 px-5 py-4">
+
             <div v-if="order.orderItems?.length" class="space-y-3">
               <div
                 v-for="item in order.orderItems"
@@ -171,6 +177,11 @@ interface Order {
   id: number
   userId: number
   status: string
+  deliveryStatus?: string
+  orderNumber?: string
+  lockerOrderId?: string
+  senderOTP?: string
+  recipientOTP?: string
   totalPrice: number
   orderItems: OrderItem[]
   createdAt: string
@@ -218,8 +229,12 @@ const formatDate = (dateString?: string) => {
 }
 
 const statusLabel = (status: string) => {
-  const normalized = status?.toUpperCase() || 'PENDING'
+  const normalized = normalizeStatus(status)
   switch (normalized) {
+    case 'IN_TRANSIT':
+      return 'Đang giao'
+    case 'PICKED_UP':
+      return 'Đã nhận hàng'
     case 'PENDING':
       return 'Chờ xử lý'
     case 'CONFIRMED':
@@ -228,6 +243,10 @@ const statusLabel = (status: string) => {
       return 'Đang giao'
     case 'DELIVERED':
       return 'Đã giao'
+    case 'DELIVERED_TO_LOCKER':
+      return 'Đã giao tại tủ'
+    case 'COMPLETED':
+      return 'Hoàn thành'
     case 'CANCELLED':
       return 'Đã hủy'
     default:
@@ -236,8 +255,12 @@ const statusLabel = (status: string) => {
 }
 
 const statusClass = (status: string) => {
-  const normalized = status?.toUpperCase() || 'PENDING'
+  const normalized = normalizeStatus(status)
   switch (normalized) {
+    case 'IN_TRANSIT':
+      return 'bg-purple-100 text-purple-700'
+    case 'PICKED_UP':
+      return 'bg-emerald-100 text-emerald-700'
     case 'PENDING':
       return 'bg-yellow-100 text-yellow-700'
     case 'CONFIRMED':
@@ -245,6 +268,10 @@ const statusClass = (status: string) => {
     case 'SHIPPED':
       return 'bg-purple-100 text-purple-700'
     case 'DELIVERED':
+      return 'bg-green-100 text-green-700'
+    case 'DELIVERED_TO_LOCKER':
+      return 'bg-blue-100 text-blue-700'
+    case 'COMPLETED':
       return 'bg-green-100 text-green-700'
     case 'CANCELLED':
       return 'bg-red-100 text-red-700'
@@ -254,8 +281,45 @@ const statusClass = (status: string) => {
 }
 
 const canCancel = (status: string) => {
-  const normalized = status?.toUpperCase()
+  const normalized = normalizeStatus(status)
   return normalized === 'PENDING' || normalized === 'CONFIRMED'
+}
+
+const normalizeStatus = (status?: string) => {
+  return (status || 'PENDING').toUpperCase().replace(/-/g, '_')
+}
+
+const getDisplayStatus = (order: Order) => {
+  return order.deliveryStatus || order.status || 'PENDING'
+}
+
+const getTrackingReference = (order: Order) => {
+  return order.lockerOrderId || order.orderNumber || String(order.id)
+}
+
+const enrichDeliveryStatus = async (orderList: Order[]) => {
+  return Promise.all(
+    orderList.map(async (order) => {
+      try {
+        const orderRef = encodeURIComponent(getTrackingReference(order))
+        const tracking: any = await $fetch(`${API_BASE_URL}/api/orders/delivery-status/${orderRef}`, {
+          headers: {
+            ...(getAuthHeader() as Record<string, string>)
+          }
+        })
+
+        return {
+          ...order,
+          deliveryStatus: tracking?.deliveryStatus || tracking?.status || order.deliveryStatus,
+          senderOTP: tracking?.senderOTP || order.senderOTP,
+          recipientOTP: tracking?.recipientOTP || order.recipientOTP
+        }
+      } catch (error) {
+        console.warn(`Delivery tracking unavailable for order ${order.id}`, error)
+        return order
+      }
+    })
+  )
 }
 
 const toggleExpanded = (orderId: number) => {
@@ -281,7 +345,8 @@ const fetchOrders = async () => {
       }
     })
 
-    orders.value = response?.content || []
+    const baseOrders = response?.content || []
+    orders.value = await enrichDeliveryStatus(baseOrders)
     totalPages.value = response?.totalPages || 0
   } catch (error: any) {
     console.error('Error fetching orders:', error)

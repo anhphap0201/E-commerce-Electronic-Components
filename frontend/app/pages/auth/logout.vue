@@ -20,13 +20,16 @@
 
 <script setup lang="ts">
 import { useAuth } from '~/composables/useAuth'
+import { useCart } from '~/composables/useCart'
 import { useNotification } from '~/composables/useNotification'
 
 const { logout } = useAuth()
+const { cart } = useCart()
 const { success } = useNotification()
 
 // Logout immediately when this page loads
 logout()
+cart.value = null
 success('Đăng xuất thành công', 'Hẹn gặp lại bạn!')
 
 // Redirect to home after 2 seconds
