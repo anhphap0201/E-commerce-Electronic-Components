@@ -18,10 +18,18 @@
       <!-- Search Info -->
       <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900 mb-2">
-          Kết quả tìm kiếm cho: <span class="text-[#09f]">"{{ route.query.q }}"</span>
+          <span v-if="searchQuery">
+            Kết quả tìm kiếm cho: <span class="text-[#09f]">"{{ searchQuery }}"</span>
+            <span v-if="selectedCategory" class="text-sm text-gray-600"> trong {{ getCategoryName(selectedCategory) }}</span>
+          </span>
+          <span v-else-if="selectedCategory">
+            Danh mục: <span class="text-[#09f]">{{ getCategoryName(selectedCategory) }}</span>
+          </span>
+          <span v-else>Tất cả sản phẩm</span>
         </h1>
         <p class="text-gray-600">
-          Tìm thấy <span class="font-semibold text-gray-900">{{ filteredProducts.length }}</span> sản phẩm
+          <span v-if="loading">Đang tải...</span>
+          <span v-else>Tìm thấy <span class="font-semibold text-gray-900">{{ totalElements }}</span> sản phẩm</span>
         </p>
       </div>
 
@@ -49,7 +57,7 @@
                 >
                   <input
                     type="radio"
-                    :value="category.name"
+                    :value="category.id"
                     v-model="selectedCategory"
                     class="w-4 h-4 text-[#09f] border-gray-300 focus:ring-[#09f] focus:ring-2 cursor-pointer"
                   />
@@ -145,7 +153,12 @@
           </div>
 
           <!-- Products List -->
-          <div v-if="sortedProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div v-if="loading" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-[#09f]"></div>
+            <p class="mt-4 text-gray-600">Đang tải sản phẩm...</p>
+          </div>
+
+          <div v-else-if="sortedProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
             <NuxtLink
               v-for="product in paginatedProducts"
               :key="product.id"
@@ -160,12 +173,16 @@
                   class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
                 />
                 <!-- Sale Badge -->
-                <div v-if="product.discount" class="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-bold">
-                  -{{ product.discount }}%
+                <div v-if="product.hasDiscount" class="z-10 absolute bottom-3 left-3 bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-bold">
+                  Giảm giá
                 </div>
                 <!-- Category Badge -->
                 <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-gray-700 px-3 py-1 rounded-lg text-xs font-medium">
                   {{ product.category }}
+                </div>
+                <!-- Variant Count Badge -->
+                <div v-if="product.variantCount > 1" class="absolute bottom-3 right-3 bg-purple-100 text-purple-800 px-2 py-1 rounded-lg text-xs font-medium">
+                  {{ product.variantCount }} phân loại
                 </div>
               </div>
 
@@ -175,23 +192,17 @@
                   {{ product.name }}
                 </h3>
                 
-                <!-- Price -->
-                <div class="flex items-center gap-2 mb-3">
-                  <span class="text-lg font-bold text-[#09f]">
-                    {{ formatPrice(product.discount ? product.salePrice : product.originalPrice) }}
-                  </span>
-                  <span v-if="product.discount" class="text-sm text-gray-400 line-through">
-                    {{ formatPrice(product.originalPrice) }}
+                <!-- Price Range -->
+                <div class="flex flex-col mb-3">
+                  <span class=" font-bold text-[#09f]">
+                    {{ product.priceRange }}
                   </span>
                 </div>
 
                 <!-- Actions -->
                 <div class="flex gap-2">
-                  <button @click.prevent="buyNow(product.id)" class="flex-1 bg-[#09f] text-white py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-[#0077cc] hover:shadow-lg active:scale-95">
+                  <button @click.prevent="buyNow(product.productId)" class="flex-1 bg-[#09f] text-white py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-[#0077cc] hover:shadow-lg active:scale-95">
                     Mua ngay
-                  </button>
-                  <button @click.prevent="addToCart(product.id)" class="w-10 h-10 border-2 border-gray-200 rounded-xl flex items-center justify-center transition-all duration-300 hover:border-[#09f] hover:text-[#09f] hover:scale-105 active:scale-95">
-                    🛒
                   </button>
                 </div>
               </div>
@@ -256,6 +267,7 @@
         </div>
       </div>
     </div>
+    
   </div>
 </template>
 
@@ -266,16 +278,21 @@ import { useRoute, useRouter } from 'vue-router'
 const route = useRoute()
 const router = useRouter()
 
+const API_BASE_URL = 'http://localhost:8080/api'
+
 const searchQuery = ref(String(route.query.q || ''))
-const selectedCategory = ref<string | null>(null)
+const selectedCategory = ref<number | null>(route.query.category ? Number(route.query.category) : null)
 const selectedPriceRange = ref<string | null>(null)
 const onlyShowSale = ref(false)
-const sortBy = ref('relevant')
+const sortBy = ref('newest')
 const currentPage = ref(1)
 const itemsPerPage = 12
 
-// Fetch categories from API
+// State
 const categories = ref<any[]>([])
+const products = ref<any[]>([])
+const loading = ref(false)
+const totalElements = ref(0)
 
 const priceRanges = [
   { id: '0-100k', label: 'Dưới 100.000đ', min: 0, max: 100000 },
@@ -286,243 +303,236 @@ const priceRanges = [
 ]
 
 const sortOptions = [
-  { value: 'relevant', label: 'Liên quan' },
+  { value: 'newest', label: 'Mới nhất' },
+  { value: 'bestseller', label: 'Bán chạy' },
+  { value: 'rating_desc', label: 'Đánh giá cao' },
   { value: 'price-asc', label: 'Giá thấp đến cao' },
   { value: 'price-desc', label: 'Giá cao đến thấp' },
-  { value: 'name-asc', label: 'Tên A-Z' }
+  { value: 'name_asc', label: 'Tên A-Z' },
+  { value: 'name_desc', label: 'Tên Z-A' }
 ]
 
-// Mock products data - In real app, this would come from API
-const allProducts = ref([
-  {
-    id: 1,
-    name: 'Arduino Uno R3 - Bo mạch phát triển',
-    category: 'Arduino',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 200000,
-    salePrice: 140000,
-    discount: 30
-  },
-  {
-    id: 2,
-    name: 'ESP32 DevKit V1 - WiFi Bluetooth',
-    category: 'ESP32',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 150000,
-    salePrice: 105000,
-    discount: 30
-  },
-  {
-    id: 3,
-    name: 'Raspberry Pi 4 Model B 4GB RAM',
-    category: 'Raspberry Pi',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 1500000,
-    salePrice: 1200000,
-    discount: 20
-  },
-  {
-    id: 4,
-    name: 'LED RGB 5050 SMD - 100 chiếc',
-    category: 'LED',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 100000,
-    salePrice: 70000,
-    discount: 30
-  },
-  {
-    id: 5,
-    name: 'Cảm biến nhiệt độ DHT11',
-    category: 'Cảm biến',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 50000,
-    salePrice: 35000,
-    discount: 30
-  },
-  {
-    id: 6,
-    name: 'Motor DC 6V giảm tốc',
-    category: 'Motor',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 80000,
-    salePrice: 56000,
-    discount: 30
-  },
-  {
-    id: 7,
-    name: 'Relay 5V 1 kênh',
-    category: 'Relay',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 30000,
-    salePrice: 21000,
-    discount: 30
-  },
-  {
-    id: 8,
-    name: 'Màn hình LCD 16x2',
-    category: 'Màn hình',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 120000,
-    salePrice: 84000,
-    discount: 30
-  },
-  {
-    id: 9,
-    name: 'Cảm biến siêu âm HC-SR04',
-    category: 'Cảm biến',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 40000,
-    salePrice: 28000,
-    discount: 30
-  },
-  {
-    id: 10,
-    name: 'Module Bluetooth HC-05',
-    category: 'Module',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 90000,
-    salePrice: 63000,
-    discount: 30
-  },
-  {
-    id: 11,
-    name: 'Arduino Nano V3.0 ATmega328P',
-    category: 'Arduino',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 120000,
-    salePrice: 0,
-    discount: 0
-  },
-  {
-    id: 12,
-    name: 'ESP8266 NodeMCU WiFi Module',
-    category: 'ESP32',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 80000,
-    salePrice: 0,
-    discount: 0
-  },
-  {
-    id: 13,
-    name: 'Điện trở 1/4W - Bộ 100 chiếc',
-    category: 'Điện trở',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 30000,
-    salePrice: 0,
-    discount: 0
-  },
-  {
-    id: 14,
-    name: 'Tụ điện Ceramic - Bộ 50 chiếc',
-    category: 'Tụ điện',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 40000,
-    salePrice: 0,
-    discount: 0
-  },
-  {
-    id: 15,
-    name: 'LED đơn 5mm - Bộ 100 chiếc',
-    category: 'LED',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 25000,
-    salePrice: 0,
-    discount: 0
-  },
-  {
-    id: 16,
-    name: 'Transistor 2N2222 - Bộ 10 chiếc',
-    category: 'Transistor',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 15000,
-    salePrice: 0,
-    discount: 0
-  },
-  {
-    id: 17,
-    name: 'IC 74LS00 Quad NAND Gate',
-    category: 'IC 74LS',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 8000,
-    salePrice: 0,
-    discount: 0
-  },
-  {
-    id: 18,
-    name: 'Biến trở 10K Ohm',
-    category: 'Biến trở',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 12000,
-    salePrice: 0,
-    discount: 0
-  }
-])
+// API Functions
+const searchProducts = async () => {
+  loading.value = true
+  try {
+    let result: any = null
+    let apiUrl = ''
 
-const filteredProducts = computed(() => {
-  let filtered = allProducts.value
+    console.log('🎯 Search Params:', {
+      searchQuery: searchQuery.value,
+      selectedCategory: selectedCategory.value,
+      selectedPriceRange: selectedPriceRange.value,
+      onlyShowSale: onlyShowSale.value,
+      sortBy: sortBy.value
+    })
 
-  // Filter by search query
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(p => 
-      p.name.toLowerCase().includes(query) || 
-      p.category.toLowerCase().includes(query)
-    )
-  }
+    // Map sortBy value to backend format
+    const backendSortBy = sortBy.value === 'price-asc' ? 'name_asc' : 
+                          sortBy.value === 'price-desc' ? 'name_desc' : 
+                          sortBy.value
 
-  // Filter by category
-  if (selectedCategory.value) {
-    filtered = filtered.filter(p => p.category === selectedCategory.value)
-  }
-
-  // Filter by price range
-  if (selectedPriceRange.value) {
-    const range = priceRanges.find(r => r.id === selectedPriceRange.value)
-    if (range) {
-      filtered = filtered.filter(p => {
-        const price = p.discount ? p.salePrice : p.originalPrice
-        return price >= range.min && price <= range.max
+    // 1. Nếu chỉ lọc sản phẩm giảm giá (có thể kết hợp sort)
+    if (onlyShowSale.value && !selectedCategory.value && !selectedPriceRange.value && !searchQuery.value) {
+      // GET /api/products/search/filter/on-sale
+      apiUrl = `${API_BASE_URL}/products/search/filter/on-sale`
+      result = await $fetch(apiUrl, {
+        params: {
+          page: currentPage.value - 1,
+          size: itemsPerPage,
+          sortBy: backendSortBy
+        }
       })
     }
-  }
+    // 2. Nếu chỉ có khoảng giá (không có category, sale, search)
+    else if (selectedPriceRange.value && !selectedCategory.value && !onlyShowSale.value && !searchQuery.value) {
+      const range = priceRanges.find(r => r.id === selectedPriceRange.value)
+      if (range && range.max !== Infinity) {
+        // GET /api/products/search/filter/by-price
+        apiUrl = `${API_BASE_URL}/products/search/filter/by-price`
+        result = await $fetch(apiUrl, {
+          params: {
+            minPrice: range.min,
+            maxPrice: range.max,
+            page: currentPage.value - 1,
+            size: itemsPerPage,
+            sortBy: backendSortBy
+          }
+        })
+      }
+    }
+    // 3. Nếu có search query (có thể kết hợp với category, price, sale)
+    else if (searchQuery.value) {
+      // GET /api/products/search/by-product-name (lấy tất cả kết quả)
+      apiUrl = `${API_BASE_URL}/products/search/by-product-name`
+      result = await $fetch(apiUrl, {
+        params: {
+          productName: searchQuery.value
+        }
+      })
+      // Sẽ filter theo category/price/sale ở client-side sau
+    }
+    // 4. Nếu chỉ lọc theo category (không có filter khác)
+    else if (selectedCategory.value && !selectedPriceRange.value && !onlyShowSale.value && !searchQuery.value) {
+      // GET /api/products/search/by-category-id/{categoryId}
+      apiUrl = `${API_BASE_URL}/products/search/by-category-id/${selectedCategory.value}`
+      result = await $fetch(apiUrl)
+      console.log('📂 Category ID:', selectedCategory.value)
+    }
+    // 5. Nếu có nhiều điều kiện lọc kết hợp (KHÔNG có search), dùng POST filter
+    else {
+      const range = selectedPriceRange.value 
+        ? priceRanges.find(r => r.id === selectedPriceRange.value)
+        : null
 
-  // Filter by sale
-  if (onlyShowSale.value) {
-    filtered = filtered.filter(p => p.discount > 0)
-  }
+      const filterRequest: any = {
+        page: currentPage.value - 1,
+        size: itemsPerPage
+      }
 
-  return filtered
+      // Thêm điều kiện lọc giá
+      if (range) {
+        filterRequest.minPrice = range.min
+        if (range.max !== Infinity) {
+          filterRequest.maxPrice = range.max
+        }
+      }
+
+      // Thêm điều kiện lọc category
+      if (selectedCategory.value) {
+        filterRequest.categoryId = selectedCategory.value
+      }
+
+      console.log('Filter Request:', filterRequest)
+
+      // POST /api/products/search/filter
+      apiUrl = `${API_BASE_URL}/products/search/filter`
+      result = await $fetch(apiUrl, {
+        method: 'POST',
+        body: filterRequest
+      })
+    }
+
+    console.log('API Called:', apiUrl)
+    console.log('Response:', result)
+    console.log('Response Type:', typeof result)
+    console.log('Is Array:', Array.isArray(result))
+
+    if (result) {
+      // Nếu result là array trực tiếp (không có pagination)
+      if (Array.isArray(result)) {
+        // Không flatten variants nữa - hiển thị sản phẩm với khoảng giá
+        let finalProducts = result
+        
+        // Filter by category
+        if (selectedCategory.value && searchQuery.value) {
+          finalProducts = finalProducts.filter((p: any) => {
+            return p.categories && p.categories.some((cat: any) => cat.id === selectedCategory.value)
+          })
+        }
+        
+        // Filter by price range (sử dụng minPrice của product)
+        if (selectedPriceRange.value && searchQuery.value) {
+          const range = priceRanges.find(r => r.id === selectedPriceRange.value)
+          if (range) {
+            finalProducts = finalProducts.filter((p: any) => {
+              const minPrice = p.minDiscountPrice || p.minPrice || 0
+              return minPrice >= range.min && minPrice <= range.max
+            })
+          }
+        }
+        
+        // Filter by sale (hasDiscount từ backend)
+        if (onlyShowSale.value && searchQuery.value) {
+          finalProducts = finalProducts.filter((p: any) => p.hasDiscount)
+        }
+        
+        products.value = finalProducts
+        totalElements.value = finalProducts.length
+      } 
+      // Nếu result có cấu trúc pagination (Page object)
+      else if (result.content) {
+        // Không flatten variants - sử dụng products với khoảng giá
+        products.value = result.content
+        totalElements.value = result.totalElements || result.content.length
+      }
+      // Fallback
+      else {
+        products.value = []
+        totalElements.value = 0
+      }
+    }
+  } catch (error: any) {
+    console.error('Error searching products:', error)
+    products.value = []
+    totalElements.value = 0
+  } finally {
+    loading.value = false
+  }
+}
+
+// Map product data với price range (không còn flatten variants)
+const mapProduct = (p: any) => {
+  // Tính khoảng giá từ minPrice/maxPrice
+  const minPrice = p.minDiscountPrice || p.minPrice || 0
+  const maxPrice = p.maxDiscountPrice || p.maxPrice || 0
+  
+  // Format price range
+  let priceRange = ''
+  if (minPrice === maxPrice || maxPrice === 0) {
+    priceRange = formatPrice(minPrice)
+  } else {
+    priceRange = `${formatPrice(minPrice)} - ${formatPrice(maxPrice)}`
+  }
+  
+  return {
+    id: p.id,
+    productId: p.id,
+    name: p.name,
+    category: p.categories?.[0]?.name || 'N/A',
+    img: p.defaultImageUrl ? `http://localhost:8080${p.defaultImageUrl}` : (p.categories?.[0]?.imageUrl || '/images/Edunera_Logo_512.png'),
+    minPrice: minPrice,
+    maxPrice: maxPrice,
+    priceRange: priceRange,
+    hasDiscount: p.hasDiscount || false,
+    variantCount: p.variants?.length || 0,
+    totalStock: p.totalStock || 0,
+    isAvailable: (p.totalStock || 0) > 0
+  }
+}
+
+const filteredProducts = computed(() => {
+  return products.value.map(mapProduct)
 })
 
 const sortedProducts = computed(() => {
-  const products = [...filteredProducts.value]
-
-  switch (sortBy.value) {
-    case 'price-asc':
-      return products.sort((a, b) => {
-        const priceA = a.discount ? a.salePrice : a.originalPrice
-        const priceB = b.discount ? b.salePrice : b.originalPrice
-        return priceA - priceB
-      })
-    case 'price-desc':
-      return products.sort((a, b) => {
-        const priceA = a.discount ? a.salePrice : a.originalPrice
-        const priceB = b.discount ? b.salePrice : b.originalPrice
-        return priceB - priceA
-      })
-    case 'name-asc':
-      return products.sort((a, b) => a.name.localeCompare(b.name))
-    default:
-      return products
+  // Nếu dùng API có sort (on-sale, by-price), không cần sort lại
+  // Chỉ sort client-side cho API không có sort param (by-product-name, by-category-id)
+  if (searchQuery.value || (selectedCategory.value && !selectedPriceRange.value && !onlyShowSale.value)) {
+    const prods = [...filteredProducts.value]
+    
+    switch (sortBy.value) {
+      case 'price-asc':
+        return prods.sort((a, b) => a.minPrice - b.minPrice)
+      case 'price-desc':
+        return prods.sort((a, b) => b.minPrice - a.minPrice)
+      case 'name_asc':
+        return prods.sort((a, b) => a.name.localeCompare(b.name))
+      case 'name_desc':
+        return prods.sort((a, b) => b.name.localeCompare(a.name))
+      default:
+        return prods
+    }
   }
+  
+  // Đã sort bởi backend
+  return filteredProducts.value
 })
 
-const totalPages = computed(() => Math.ceil(sortedProducts.value.length / itemsPerPage))
+const totalPages = computed(() => Math.ceil(totalElements.value / itemsPerPage))
 
 const paginatedProducts = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage
-  const end = start + itemsPerPage
-  return sortedProducts.value.slice(start, end)
+  return sortedProducts.value
 })
 
 const displayedPages = computed(() => {
@@ -558,7 +568,10 @@ const clearAllFilters = () => {
   selectedCategory.value = null
   selectedPriceRange.value = null
   onlyShowSale.value = false
+  searchQuery.value = ''
   currentPage.value = 1
+  router.replace('/search')
+  searchProducts()
 }
 
 const formatPrice = (price: number) => {
@@ -568,34 +581,50 @@ const formatPrice = (price: number) => {
   }).format(price)
 }
 
-const buyNow = (productId: number) => {
-  // Implement buy now functionality
-  alert(`Mua ngay sản phẩm ${productId}`)
+const buyNow = async (productId: number) => {
+  // Redirect to product detail page for better UX (let user choose variant)
+  router.push(`/products/${productId}`)
 }
 
-const addToCart = (productId: number) => {
-  // Implement add to cart functionality
-  alert(`Đã thêm sản phẩm ${productId} vào giỏ hàng`)
+const getCategoryName = (categoryId: number | null) => {
+  if (!categoryId) return ''
+  const category = categories.value.find(c => c.id === categoryId)
+  return category?.name || ''
 }
 
-// Reset page when filters change
+// Watchers
 watch([selectedCategory, selectedPriceRange, onlyShowSale, sortBy], () => {
   currentPage.value = 1
+  searchProducts()
 })
 
-// Update search query when route changes
 watch(() => route.query.q, (newQuery) => {
   searchQuery.value = String(newQuery || '')
   currentPage.value = 1
+  searchProducts()
 })
 
-// Fetch categories from API on mount
+watch(() => route.query.category, (newCategory) => {
+  selectedCategory.value = newCategory ? Number(newCategory) : null
+  currentPage.value = 1
+  searchProducts()
+})
+
+watch(currentPage, () => {
+  searchProducts()
+})
+
+// Load initial data
 onMounted(async () => {
   try {
-    const data = await $fetch('http://localhost:8080/api/categories')
+    // Fetch categories
+    const data = await $fetch(`${API_BASE_URL}/categories`)
     categories.value = data as any[]
+    
+    // Fetch products
+    await searchProducts()
   } catch (error) {
-    console.error('Error fetching categories:', error)
+    console.error('Error loading data:', error)
   }
 })
 </script>

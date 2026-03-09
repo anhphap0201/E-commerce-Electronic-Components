@@ -1,7 +1,8 @@
 package com.example.ecommerceelectroniccomponentsbackend.controller;
 
-import com.example.ecommerceelectroniccomponentsbackend.entity.Category;
+import com.example.ecommerceelectroniccomponentsbackend.dto.CategoryDTO;
 import com.example.ecommerceelectroniccomponentsbackend.service.CategoryService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,16 +20,15 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
-    // CREATE - POST /api/categories
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createCategory(@RequestBody Category category) {
+    public ResponseEntity<?> createCategory(@Valid @RequestBody CategoryDTO category) {
         try {
             if (categoryService.existsByName(category.getName())) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body("Danh mục với tên này đã tồn tại");
             }
-            Category created = categoryService.createCategory(category);
+            CategoryDTO created = categoryService.createCategory(category);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -36,17 +36,15 @@ public class CategoryController {
         }
     }
 
-    // READ ALL - GET /api/categories
     @GetMapping
-    public ResponseEntity<List<Category>> getAllCategories() {
-        List<Category> categories = categoryService.getAllCategories();
+    public ResponseEntity<List<CategoryDTO>> getAllCategories() {
+        List<CategoryDTO> categories = categoryService.getAllCategories();
         return ResponseEntity.ok(categories);
     }
 
-    // READ BY ID - GET /api/categories/{id}
     @GetMapping("/{id}")
     public ResponseEntity<?> getCategoryById(@PathVariable Long id) {
-        Optional<Category> category = categoryService.getCategoryById(id);
+        Optional<CategoryDTO> category = categoryService.getCategoryById(id);
         if (category.isPresent()) {
             return ResponseEntity.ok(category.get());
         }
@@ -54,10 +52,9 @@ public class CategoryController {
                 .body("Danh mục với ID " + id + " không tồn tại");
     }
 
-    // READ BY NAME - GET /api/categories/search/{name}
     @GetMapping("/search/{name}")
     public ResponseEntity<?> getCategoryByName(@PathVariable String name) {
-        Optional<Category> category = categoryService.getCategoryByName(name);
+        Optional<CategoryDTO> category = categoryService.getCategoryByName(name);
         if (category.isPresent()) {
             return ResponseEntity.ok(category.get());
         }
@@ -65,12 +62,11 @@ public class CategoryController {
                 .body("Danh mục với tên '" + name + "' không tồn tại");
     }
 
-    // UPDATE - PUT /api/categories/{id}
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateCategory(@PathVariable Long id, @RequestBody Category updatedCategory) {
+    public ResponseEntity<?> updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryDTO updatedCategory) {
         try {
-            Optional<Category> updated = categoryService.updateCategory(id, updatedCategory);
+            Optional<CategoryDTO> updated = categoryService.updateCategory(id, updatedCategory);
             if (updated.isPresent()) {
                 return ResponseEntity.ok(updated.get());
             }
@@ -82,7 +78,6 @@ public class CategoryController {
         }
     }
 
-    // DELETE - DELETE /api/categories/{id}
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteCategory(@PathVariable Long id) {

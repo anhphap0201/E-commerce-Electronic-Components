@@ -18,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/products/search")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*", maxAge = 3600)
 @Tag(name = "Product Search", description = "API tìm kiếm sản phẩm")
 public class ProductSearchController {
 
@@ -62,6 +63,19 @@ public class ProductSearchController {
             @RequestParam String productName) {
         List<ProductWithVariantsDTO> products = productSearchService.searchProductsByName(productName);
         return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/by-product-id/{productId}")
+    @Operation(summary = "Lấy chi tiết sản phẩm theo ID",
+            description = "Lấy sản phẩm (kèm variants) theo ID sản phẩm")
+    public ResponseEntity<ProductWithVariantsDTO> getProductById(
+            @Parameter(description = "ID của sản phẩm", example = "1")
+            @PathVariable Long productId) {
+        ProductWithVariantsDTO product = productSearchService.getProductById(productId);
+        if (product == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(product);
     }
 
 

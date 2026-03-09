@@ -25,7 +25,7 @@ import java.util.UUID;
 public class JwtService {
 
     private final BlacklistedTokenRepository blacklistedTokenRepository;
-    @Value("${jwt.secret-key}")
+    @Value("${app.jwt.secret-key}")
     private String secretKey;
 
     public TokenPayload generateAccessToken(User user) {
@@ -37,10 +37,11 @@ public class JwtService {
         Date expirationTime = Date.from(issueTime.toInstant().plus(30, ChronoUnit.MINUTES));
         String jwtId = UUID.randomUUID().toString();
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getEmail())
+                .subject(String.valueOf(user.getId()))  // Use user ID as subject
                 .issueTime(issueTime)
                 .expirationTime(expirationTime)
                 .jwtID(jwtId)
+                .claim("email", user.getEmail())  // Store email as claim
                 .claim("role", user.getRole().name())
                 .claim("scope", user.getRole().name())
                 .build();

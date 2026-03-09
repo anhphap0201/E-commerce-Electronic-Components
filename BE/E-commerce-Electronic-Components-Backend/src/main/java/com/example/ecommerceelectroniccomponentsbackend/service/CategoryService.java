@@ -1,51 +1,52 @@
 package com.example.ecommerceelectroniccomponentsbackend.service;
 
+import com.example.ecommerceelectroniccomponentsbackend.dto.CategoryDTO;
 import com.example.ecommerceelectroniccomponentsbackend.entity.Category;
+import com.example.ecommerceelectroniccomponentsbackend.mapper.CategoryMapper;
 import com.example.ecommerceelectroniccomponentsbackend.repository.CategoryRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CategoryService {
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
 
-    // Create - timestamps are handled by @PrePersist in Category entity
-    public Category createCategory(Category category) {
-        return categoryRepository.save(category);
+    public CategoryDTO createCategory(CategoryDTO dto) {
+        Category category = categoryMapper.toEntity(dto);
+        Category saved = categoryRepository.save(category);
+        return categoryMapper.toDTO(saved);
     }
 
-    // Read all
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public List<CategoryDTO> getAllCategories() {
+        List<Category> categories = categoryRepository.findAll();
+        return categoryMapper.toDTOList(categories);
     }
 
-    // Read by ID
-    public Optional<Category> getCategoryById(Long id) {
-        return categoryRepository.findById(id);
+    public Optional<CategoryDTO> getCategoryById(Long id) {
+        return categoryRepository.findById(id).map(categoryMapper::toDTO);
     }
 
-    // Read by name
-    public Optional<Category> getCategoryByName(String name) {
-        return categoryRepository.findByName(name);
+    public Optional<CategoryDTO> getCategoryByName(String name) {
+        return categoryRepository.findByName(name).map(categoryMapper::toDTO);
     }
 
-    // Update - updatedAt is handled by @PreUpdate in Category entity
-    public Optional<Category> updateCategory(Long id, Category updatedCategory) {
+    public Optional<CategoryDTO> updateCategory(Long id, CategoryDTO updatedDTO) {
         return categoryRepository.findById(id).map(category -> {
-            category.setName(updatedCategory.getName());
-            category.setSlug(updatedCategory.getSlug());
-            category.setImageUrl(updatedCategory.getImageUrl());
-            category.setDescription(updatedCategory.getDescription());
-            return categoryRepository.save(category);
+            category.setName(updatedDTO.getName());
+            category.setSlug(updatedDTO.getSlug());
+            category.setImageUrl(updatedDTO.getImageUrl());
+            category.setDescription(updatedDTO.getDescription());
+            Category saved = categoryRepository.save(category);
+            return categoryMapper.toDTO(saved);
         });
     }
 
-    // Delete
     public boolean deleteCategory(Long id) {
         if (categoryRepository.existsById(id)) {
             categoryRepository.deleteById(id);
@@ -54,7 +55,6 @@ public class CategoryService {
         return false;
     }
 
-    // Check if category exists by name
     public boolean existsByName(String name) {
         return categoryRepository.existsByName(name);
     }

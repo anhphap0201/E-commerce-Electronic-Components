@@ -36,12 +36,28 @@ public class User implements UserDetails {
     @Column(name = "full_name")
     private String fullName;
 
+    @Column(name = "phone")
+    private String phone;
+
+    @Column(name = "province")
+    private String province;
+
+    @Column(name = "ward")
+    private String ward;
+
+    @Column(name = "detailed_address")
+    private String detailedAddress;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     private Role role;
 
     @Column(name = "is_active")
+    @Builder.Default
     private Boolean isActive = true;
+
+    @Column(name = "email_verified")
+    private Boolean emailVerified;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -55,6 +71,9 @@ public class User implements UserDetails {
         updatedAt = LocalDateTime.now();
         if (isActive == null) {
             isActive = true;
+        }
+        if (emailVerified == null) {
+            emailVerified = false;
         }
     }
 

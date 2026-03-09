@@ -52,23 +52,21 @@
                 </svg>
               </div>
               <!-- Cart Badge -->
-              <span 
-                v-if="cartItemCount > 0"
-                class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white"
-              >
-                {{ cartItemCount > 9 ? '9+' : cartItemCount }}
-              </span>
+              <ClientOnly>
+                <span 
+                  v-if="cartItemCount > 0"
+                  class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white"
+                >
+                  {{ cartItemCount > 9 ? '9+' : cartItemCount }}
+                </span>
+              </ClientOnly>
             </NuxtLink>
 
             <!-- User Menu or Login Button -->
             <ClientOnly>
               <template #fallback>
-                <NuxtLink
-                  to="/auth/auth" 
-                  class="px-4 py-2 text-sm font-medium text-[#09f] hover:text-[#0077cc] transition-colors duration-200 whitespace-nowrap"
-                >
-                  Đăng nhập
-                </NuxtLink>
+                <!-- Empty placeholder div with same height to prevent layout shift -->
+                <div class="h-10 w-24"></div>
               </template>
               
               <div v-if="isLoggedIn" class="relative">
@@ -77,10 +75,10 @@
                   class="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-all duration-200"
                 >
                   <div class="w-8 h-8 rounded-full bg-[#09f] flex items-center justify-center text-white font-semibold text-sm">
-                    {{ user?.email?.charAt(0).toUpperCase() }}
+                    {{ (user?.fullName || user?.email)?.charAt(0).toUpperCase() }}
                   </div>
                   <span class="text-sm font-medium text-gray-700 hidden md:block max-w-[150px] truncate">
-                    {{ user?.email }}
+                    {{ user?.fullName || user?.email }}
                   </span>
                   <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -101,9 +99,28 @@
                     class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50"
                   >
                     <div class="px-4 py-2 border-b border-gray-100">
-                      <p class="text-xs text-gray-500">Đăng nhập với</p>
-                      <p class="text-sm font-medium text-gray-800 truncate">{{ user?.email }}</p>
+                      <p class="text-xs text-gray-500">Xin chào</p>
+                      <p class="text-sm font-semibold text-gray-800 truncate">{{ user?.fullName || user?.email }}</p>
+                      <p v-if="user?.fullName" class="text-xs text-gray-500 truncate">{{ user?.email }}</p>
+                      <p v-if="user?.role" class="text-xs text-[#09f] font-medium mt-1">
+                        {{ user.role === 'ROLE_ADMIN' ? 'Quản trị viên' : 'Khách hàng' }}
+                      </p>
                     </div>
+                    
+                    <!-- Admin Management Link -->
+                    <NuxtLink
+                      v-if="user?.role === 'ROLE_ADMIN'"
+                      to="/admin"
+                      class="flex items-center gap-3 px-4 py-2 text-sm text-[#09f] font-medium hover:bg-blue-50 transition-colors border-b border-gray-100"
+                      @click="showUserMenu = false"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Quản lý cửa hàng
+                    </NuxtLink>
+                    
                     <NuxtLink
                       to="/profile"
                       class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -208,13 +225,13 @@
                 <NuxtLink to="/" class="text-sm text-gray-600 hover:text-[#09f] transition-colors duration-200">Trang chủ</NuxtLink>
               </li>
               <li>
-                <NuxtLink to="/products" class="text-sm text-gray-600 hover:text-[#09f] transition-colors duration-200">Sản phẩm</NuxtLink>
+                <NuxtLink to="/search" class="text-sm text-gray-600 hover:text-[#09f] transition-colors duration-200">Tìm kiếm</NuxtLink>
               </li>
               <li>
-                <NuxtLink to="/about" class="text-sm text-gray-600 hover:text-[#09f] transition-colors duration-200">Về chúng tôi</NuxtLink>
+                <NuxtLink to="/cart" class="text-sm text-gray-600 hover:text-[#09f] transition-colors duration-200">Giỏ hàng</NuxtLink>
               </li>
               <li>
-                <NuxtLink to="/contact" class="text-sm text-gray-600 hover:text-[#09f] transition-colors duration-200">Liên hệ</NuxtLink>
+                <NuxtLink to="/profile" class="text-sm text-gray-600 hover:text-[#09f] transition-colors duration-200">Tài khoản</NuxtLink>
               </li>
             </ul>
           </div>
@@ -254,16 +271,22 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useNotification } from '~/composables/useNotification'
+import { useCart } from '~/composables/useCart'
 
 const searchQuery = ref('')
 const showUserMenu = ref(false)
 
 const { user, isAuthenticated, logout, initializeAuth } = useAuth()
 const { success } = useNotification()
+const { cartItemCount, fetchCart } = useCart()
 
 // Force initialize on mount
 onMounted(() => {
   initializeAuth()
+  // Fetch cart if authenticated
+  if (isAuthenticated.value) {
+    fetchCart()
+  }
 })
 
 const isLoggedIn = computed(() => isAuthenticated.value)
@@ -274,13 +297,6 @@ const handleLogout = () => {
   success('Đăng xuất thành công', 'Hẹn gặp lại bạn!')
   navigateTo('/')
 }
-
-// Mock cart item count - replace with actual cart state management
-const cartItemCount = computed(() => {
-  // This should be replaced with actual cart data from store (Vuex/Pinia)
-  // For now, return a mock value
-  return 3
-})
 
 const popularKeywords = [
   'Arduino',

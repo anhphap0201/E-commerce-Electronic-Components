@@ -2,6 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 
 interface User {
   email: string
+  fullName?: string
   role?: string
   [key: string]: any
 }
@@ -14,44 +15,49 @@ const isAuthenticated = computed(() => !!user.value && !!token.value)
 
 // Initialize function to be called on client
 const initializeAuth = () => {
-  console.log('🚀 initializeAuth called, isInitialized:', isInitialized.value, 'process.client:', process.client)
-  if (isInitialized.value || !process.client) return
+  if (isInitialized.value || !import.meta.client) return
   
+  console.log('Initializing auth...')
   isInitialized.value = true
   const storedToken = localStorage.getItem('token')
   const storedUser = localStorage.getItem('user')
   
-  console.log('📦 localStorage:', { storedToken, storedUser })
+  console.log('Stored token:', storedToken ? `${storedToken.substring(0, 20)}...` : 'NO TOKEN')
+  console.log('Stored user:', storedUser ? JSON.parse(storedUser).email : 'NO USER')
   
   if (storedToken && storedUser) {
     try {
       token.value = storedToken
       user.value = JSON.parse(storedUser)
-      console.log('✅ Initialized from localStorage:', user.value, 'isAuth:', isAuthenticated.value)
+      console.log('Auth initialized successfully')
     } catch (e) {
       console.error('Error parsing stored user:', e)
       localStorage.removeItem('token')
       localStorage.removeItem('user')
     }
+  } else {
+    console.warn('No stored auth data found')
   }
 }
 
 export const useAuth = () => {
   // Auto-initialize on mount
-  if (process.client && !isInitialized.value) {
+  if (import.meta.client && !isInitialized.value) {
     initializeAuth()
   }
 
   const login = (userData: User, authToken: string) => {
-    console.log('🔐 LOGIN CALLED:', userData, authToken)
+    console.log('Login called')
+    console.log('User data:', userData.email)
+    console.log('Token:', authToken ? `${authToken.substring(0, 20)}...` : 'NO TOKEN')
+    
     user.value = userData
     token.value = authToken
-    console.log('✅ After login - user:', user.value, 'isAuth:', isAuthenticated.value)
     
-    if (process.client) {
+    if (import.meta.client) {
       localStorage.setItem('token', authToken)
       localStorage.setItem('user', JSON.stringify(userData))
-      console.log('💾 Saved to localStorage')
+      console.log('Auth data saved to localStorage')
     }
   }
 
@@ -59,7 +65,7 @@ export const useAuth = () => {
     user.value = null
     token.value = null
     
-    if (process.client) {
+    if (import.meta.client) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
     }

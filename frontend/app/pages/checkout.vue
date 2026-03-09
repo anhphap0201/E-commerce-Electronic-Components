@@ -15,96 +15,76 @@
             </div>
 
             <form class="space-y-4">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Họ và tên <span class="text-red-500">*</span>
-                  </label>
-                  <input
-                    v-model="shippingInfo.fullName"
-                    type="text"
-                    required
-                    class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm transition-all duration-300 outline-none focus:border-[#09f] focus:shadow-[0_0_0_3px_rgba(0,153,255,0.1)]"
-                    placeholder="Nhập họ và tên"
-                  />
-                </div>
+              <div v-if="profileLoading" class="text-sm text-gray-500">Đang tải địa chỉ từ hồ sơ...</div>
 
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Số điện thoại <span class="text-red-500">*</span>
-                  </label>
-                  <input
-                    v-model="shippingInfo.phone"
-                    type="tel"
-                    required
-                    class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm transition-all duration-300 outline-none focus:border-[#09f] focus:shadow-[0_0_0_3px_rgba(0,153,255,0.1)]"
-                    placeholder="Nhập số điện thoại"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Email <span class="text-red-500">*</span>
-                </label>
-                <input
-                  v-model="shippingInfo.email"
-                  type="email"
-                  required
-                  class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm transition-all duration-300 outline-none focus:border-[#09f] focus:shadow-[0_0_0_3px_rgba(0,153,255,0.1)]"
-                  placeholder="email@example.com"
-                />
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Tỉnh/Thành phố <span class="text-red-500">*</span>
-                  </label>
-                  <select
-                    v-model="shippingInfo.provinceCode"
-                    @change="handleProvinceChange"
-                    required
-                    :disabled="provinceLoading"
-                    class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm transition-all duration-300 outline-none focus:border-[#09f] focus:shadow-[0_0_0_3px_rgba(0,153,255,0.1)] disabled:bg-gray-100"
+              <template v-else>
+                <div v-if="!hasShippingProfile" class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                  <p class="text-sm text-yellow-700">
+                    Bạn chưa cập nhật địa chỉ giao hàng trong hồ sơ.
+                  </p>
+                  <NuxtLink
+                    to="/profile"
+                    class="inline-block mt-2 text-sm font-semibold text-[#09f] hover:text-[#0077cc]"
                   >
-                    <option value="">{{ provinceLoading ? 'Đang tải...' : 'Chọn tỉnh/thành' }}</option>
-                    <option v-for="province in provinces" :key="province.code" :value="province.code">
-                      {{ province.name }}
-                    </option>
-                  </select>
+                    Cập nhật địa chỉ ngay
+                  </NuxtLink>
                 </div>
 
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Phường/Xã <span class="text-red-500">*</span>
-                  </label>
-                  <select
-                    v-model="shippingInfo.wardCode"
-                    required
-                    :disabled="!shippingInfo.provinceCode"
-                    class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm transition-all duration-300 outline-none focus:border-[#09f] focus:shadow-[0_0_0_3px_rgba(0,153,255,0.1)] disabled:bg-gray-100"
+                <div v-else class="space-y-4">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Họ và tên</label>
+                      <div class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-800">
+                        {{ shippingInfo.fullName }}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
+                      <div class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-800">
+                        {{ shippingInfo.phone }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <div class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-800">
+                      {{ shippingInfo.email }}
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Tỉnh/Thành phố</label>
+                      <div class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-800">
+                        {{ shippingInfo.province }}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Phường/Xã</label>
+                      <div class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-800">
+                        {{ shippingInfo.ward }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Địa chỉ cụ thể</label>
+                    <div class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-800">
+                      {{ shippingInfo.address }}
+                    </div>
+                  </div>
+
+                  <NuxtLink
+                    to="/profile"
+                    class="inline-block text-sm font-semibold text-[#09f] hover:text-[#0077cc]"
                   >
-                    <option value="">Chọn phường/xã</option>
-                    <option v-for="ward in wards" :key="ward.code" :value="ward.code">
-                      {{ ward.name }}
-                    </option>
-                  </select>
+                    Chỉnh sửa địa chỉ trong hồ sơ
+                  </NuxtLink>
                 </div>
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Địa chỉ cụ thể <span class="text-red-500">*</span>
-                </label>
-                <input
-                  v-model="shippingInfo.address"
-                  type="text"
-                  required
-                  class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm transition-all duration-300 outline-none focus:border-[#09f] focus:shadow-[0_0_0_3px_rgba(0,153,255,0.1)]"
-                  placeholder="Số nhà, tên đường..."
-                />
-              </div>
+              </template>
 
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -200,6 +180,52 @@
                 </span>
               </label>
             </div>
+
+            <!-- Smart Locker Selection -->
+            <div v-if="selectedShipping === 'smart_locker'" class="mt-6 space-y-4 border-t-2 border-gray-100 pt-6">
+              <h3 class="text-lg font-semibold text-gray-900">Chọn tủ nhận hàng</h3>
+
+              <!-- Locker Selection -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Chọn tủ thông minh</label>
+                <div v-if="loadingLockers" class="text-sm text-gray-500">Đang tải danh sách tủ...</div>
+                <div v-else-if="lockers.length === 0" class="text-sm text-red-500">Không có tủ nào đang hoạt động</div>
+                <div v-else class="space-y-2">
+                  <label
+                    v-for="locker in lockers"
+                    :key="locker.lockerId"
+                    :class="[
+                      'flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-300',
+                      selectedLocker === locker.lockerId
+                        ? 'border-[#09f] bg-blue-50'
+                        : 'border-gray-200 hover:border-[#09f]'
+                    ]"
+                    @click="selectLocker(locker.lockerId)"
+                  >
+                    <input
+                      type="radio"
+                      :value="locker.lockerId"
+                      :checked="selectedLocker === locker.lockerId"
+                      name="locker"
+                      class="w-4 h-4 text-[#09f] border-gray-300 focus:ring-[#09f] cursor-pointer"
+                    />
+                    <div>
+                      <p class="font-semibold text-gray-900 text-sm">{{ locker.locationName }}</p>
+                      <p class="text-xs text-gray-500">{{ locker.address }}</p>
+                      <p class="text-xs text-green-600">Trống {{ locker.availableCompartments }}/{{ locker.totalCompartments }} ngăn</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Selection Summary -->
+              <div v-if="selectedLocker" class="bg-green-50 border border-green-200 rounded-xl p-3">
+                <p class="text-sm text-green-700">
+                  <span class="font-semibold">✓ Đã chọn:</span>
+                  Tủ <span class="font-bold">{{ lockers.find(l => l.lockerId === selectedLocker)?.locationName }}</span>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -207,6 +233,8 @@
         <div class="lg:col-span-1">
           <div class="bg-white rounded-2xl p-6 shadow-sm sticky top-24 space-y-6">
             <h2 class="text-xl font-bold text-gray-900">Đơn hàng ({{ orderItems.length }} sản phẩm)</h2>
+
+            <div v-if="cartLoading" class="text-sm text-gray-500">Đang tải sản phẩm từ giỏ hàng...</div>
 
             <!-- Order Items -->
             <div class="space-y-4 max-h-64 overflow-y-auto">
@@ -225,7 +253,7 @@
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-semibold text-gray-900 line-clamp-2">{{ item.name }}</p>
                   <p class="text-sm font-bold mt-1 flex items-center justify-between">
-                    <span class="text-[#09f]">{{ formatPrice(item.salePrice || item.price || 0) }}</span>
+                    <span class="text-[#09f]">{{ formatPrice(item.price) }}</span>
                     <span class="text-gray-700">Số lượng: {{ item.quantity }}</span>
                   </p>
                 
@@ -295,7 +323,7 @@
               <div class="border-t border-gray-200 pt-3">
                 <div class="flex justify-between items-baseline">
                   <span class="text-lg font-semibold text-gray-900">Tổng cộng:</span>
-                  <span class="text-2xl font-bold text-[#09f]">{{ formatPrice(total) }}</span>
+                  <span class="text-lg font-bold text-[#09f]">{{ formatPrice(total) }}</span>
                 </div>
               </div>
             </div>
@@ -303,15 +331,15 @@
             <!-- Place Order Button -->
             <button
               @click="placeOrder"
-              :disabled="!isFormValid"
+              :disabled="!isFormValid || placingOrder"
               :class="[
                 'w-full py-4 rounded-xl font-semibold text-lg transition-all duration-300',
-                isFormValid
+                isFormValid && !placingOrder
                   ? 'bg-gradient-to-r from-[#09f] to-[#0077cc] text-white hover:shadow-xl hover:scale-105 active:scale-95 cursor-pointer'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               ]"
             >
-              Đặt hàng
+              {{ placingOrder ? 'Đang xử lý...' : 'Đặt hàng' }}
             </button>
           </div>
         </div>
@@ -424,95 +452,89 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 
+definePageMeta({
+  middleware: ['auth']
+})
+
 interface OrderItem {
-  id: string | number
+  id: number
   name: string
   img: string
-  price?: number
-  originalPrice?: number
-  salePrice?: number
+  price: number
   quantity: number
 }
 
-// Provinces API
-const provinces = ref<any[]>([])
-const wards = ref<any[]>([])
-const provinceLoading = ref(false)
+const { getAuthHeader } = useAuth()
+const { success: showSuccess, error: showError } = useNotification()
+const { cart, fetchCart } = useCart()
+const {
+  lockers,
+  loadingLockers,
+  selectedLocker,
+  fetchLockers,
+  selectLocker,
+  reset: resetLocker
+} = useSmartLocker()
 
-const API_URL = 'https://provinces.open-api.vn/api/v2'
+const profileLoading = ref(false)
+const cartLoading = ref(false)
+const placingOrder = ref(false)
 
-// Lấy danh sách tỉnh/thành phố với phường/xã
-const fetchProvinces = async () => {
-  try {
-    provinceLoading.value = true
-    const response = await fetch(`${API_URL}/?depth=2`)
-    const data = await response.json()
-    provinces.value = data || []
-  } catch (error) {
-    console.error('Error fetching provinces:', error)
-  } finally {
-    provinceLoading.value = false
-  }
-}
+const API_BASE_URL = 'http://localhost:8080'
 
-// Mock order data - should come from cart
-const orderItems = ref<OrderItem[]>([
-  {
-    id: '1',
-    name: 'Arduino Uno R3 - Bo mạch phát triển',
-    img: '/images/ArduinoUnoR3.jpg',
-    originalPrice: 200000,
-    salePrice: 140000,
-    quantity: 2
-  },
-  {
-    id: '2',
-    name: 'ESP32 DevKit V1 - WiFi Bluetooth Module',
-    img: '/images/nodemcu-esp32-01.webp',
-    originalPrice: 150000,
-    salePrice: 105000,
-    quantity: 1
-  }
-])
+const orderItems = ref<OrderItem[]>([])
 
 const shippingInfo = ref({
   fullName: '',
   phone: '',
   email: '',
-  provinceCode: '',
-  wardCode: '',
+  province: '',
+  ward: '',
   address: '',
   note: ''
 })
+
+const hasShippingProfile = computed(() => {
+  return (
+    shippingInfo.value.fullName.trim() !== '' &&
+    shippingInfo.value.phone.trim() !== '' &&
+    shippingInfo.value.email.trim() !== '' &&
+    shippingInfo.value.province.trim() !== '' &&
+    shippingInfo.value.ward.trim() !== '' &&
+    shippingInfo.value.address.trim() !== ''
+  )
+})
+
+const normalizeImageUrl = (imageUrl?: string) => {
+  if (!imageUrl) return '/images/placeholder.png'
+  return imageUrl.startsWith('http') ? imageUrl : `${API_BASE_URL}${imageUrl}`
+}
+
+const syncOrderItemsFromCart = () => {
+  const cartItems = cart.value?.cartItems || []
+  orderItems.value = cartItems.map((item) => ({
+    id: item.id,
+    name: item.variantName ? `${item.productName} - ${item.variantName}` : item.productName,
+    img: normalizeImageUrl(item.imageUrl),
+    price: item.price,
+    quantity: item.quantity
+  }))
+}
 
 const paymentMethods = [
   {
     id: 'cod',
     name: 'Thanh toán khi nhận hàng (COD)',
     description: 'Thanh toán bằng tiền mặt khi nhận hàng',
-    icon: '💵',
+    icon: 'COD',
     image: '/payment method/icons8-dollar-50.png'
-  },
-  {
-    id: 'bank',
-    name: 'Chuyển khoản ngân hàng',
-    description: 'Chuyển khoản qua tài khoản ngân hàng',
-    icon: '🏦',
-    image: '/payment method/logo-atm.png'
   },
   {
     id: 'momo',
     name: 'Ví MoMo',
     description: 'Thanh toán qua ví điện tử MoMo',
-    icon: '📱',
+    icon: 'MOMO',
     image: '/payment method/MOMO-Logo-App.png'
-  },
-  {
-    id: 'card',
-    name: 'Thẻ tín dụng/Ghi nợ',
-    description: 'Visa, Mastercard, JCB',
-    icon: '💳',
-    image: '/payment method/logo-visa-master-jcb.png'
   }
 ]
 
@@ -534,6 +556,12 @@ const shippingMethods = [
     name: 'Giao hàng hỏa tốc',
     description: 'Giao hàng trong 24 giờ',
     fee: 80000
+  },
+  {
+    id: 'smart_locker',
+    name: 'Tủ thông minh (Smart Locker)',
+    description: 'Nhận hàng tại tủ khóa thông minh gần bạn',
+    fee: 15000
   }
 ]
 
@@ -572,19 +600,12 @@ const availableVouchers = [
 // Computed values
 const subtotal = computed(() => {
   return orderItems.value.reduce((sum, item) => {
-    const price = item.salePrice || item.price || 0
-    return sum + (price * item.quantity)
+    return sum + (item.price * item.quantity)
   }, 0)
 })
 
 const discount = computed(() => {
-  let productDiscount = orderItems.value.reduce((sum, item) => {
-    if (item.originalPrice && item.salePrice) {
-      return sum + ((item.originalPrice - item.salePrice) * item.quantity)
-    }
-    return sum
-  }, 0)
-  return productDiscount + voucherDiscount.value
+  return voucherDiscount.value
 })
 
 const voucherDiscount = computed(() => {
@@ -619,26 +640,52 @@ const total = computed(() => {
 })
 
 const isFormValid = computed(() => {
-  return (
-    shippingInfo.value.fullName.trim() !== '' &&
-    shippingInfo.value.phone.trim() !== '' &&
-    shippingInfo.value.email.trim() !== '' &&
-    shippingInfo.value.provinceCode !== '' &&
-    shippingInfo.value.wardCode !== '' &&
-    shippingInfo.value.address.trim() !== '' &&
+  const baseValid = hasShippingProfile.value &&
+    orderItems.value.length > 0 &&
     selectedPayment.value !== '' &&
     selectedShipping.value !== ''
-  )
+
+  if (selectedShipping.value === 'smart_locker') {
+    return baseValid && !!selectedLocker.value
+  }
+
+  return baseValid
 })
 
 // Methods
-const handleProvinceChange = () => {
-  shippingInfo.value.wardCode = ''
-  if (shippingInfo.value.provinceCode) {
-    const selectedProvince = provinces.value.find(p => p.code === shippingInfo.value.provinceCode)
-    wards.value = selectedProvince?.wards || []
-  } else {
-    wards.value = []
+const fetchCheckoutCart = async () => {
+  cartLoading.value = true
+  try {
+    await fetchCart()
+    syncOrderItemsFromCart()
+  } catch (error) {
+    console.error('Error fetching cart for checkout:', error)
+    showError('Không thể tải sản phẩm trong giỏ hàng')
+  } finally {
+    cartLoading.value = false
+  }
+}
+
+const fetchShippingProfile = async () => {
+  profileLoading.value = true
+  try {
+    const profile: any = await $fetch(`${API_BASE_URL}/api/user/profile`, {
+      headers: {
+        ...(getAuthHeader() as Record<string, string>)
+      }
+    })
+
+    shippingInfo.value.fullName = profile?.fullName || ''
+    shippingInfo.value.phone = profile?.phone || ''
+    shippingInfo.value.email = profile?.email || ''
+    shippingInfo.value.province = profile?.province || ''
+    shippingInfo.value.ward = profile?.ward || ''
+    shippingInfo.value.address = profile?.detailedAddress || ''
+  } catch (error: any) {
+    console.error('Error fetching shipping profile:', error)
+    showError('Không thể tải địa chỉ giao hàng từ hồ sơ')
+  } finally {
+    profileLoading.value = false
   }
 }
 
@@ -714,29 +761,94 @@ const selectModalVoucher = (voucher: any) => {
   showVoucherModal.value = false
 }
 
-const placeOrder = () => {
+const placeOrder = async () => {
   if (!isFormValid.value) {
-    alert('Vui lòng điền đầy đủ thông tin!')
+    alert('Vui lòng cập nhật đủ địa chỉ hồ sơ, chọn phương thức và đảm bảo giỏ hàng có sản phẩm!')
     return
   }
 
-  const orderData = {
-    items: orderItems.value,
-    shipping: shippingInfo.value,
-    paymentMethod: selectedPayment.value,
-    shippingMethod: selectedShipping.value,
-    total: total.value
-  }
+  placingOrder.value = true
+  try {
+    const orderBody: Record<string, any> = {
+      paymentMethod: selectedPayment.value.toUpperCase(),
+      shippingMethod: selectedShipping.value.toUpperCase(),
+      shippingFee: shippingFee.value,
+      discount: voucherDiscount.value,
+      voucherCode: appliedVoucher.value?.code || null,
+      note: null
+    }
 
-  console.log('Order placed:', orderData)
-  alert('Đặt hàng thành công! Cảm ơn bạn đã mua hàng.')
-  
-  // Redirect to order confirmation or home page
-  navigateTo('/')
+    // Only include locker fields when smart_locker is selected
+    if (selectedShipping.value === 'smart_locker') {
+      orderBody.lockerId = selectedLocker.value
+    }
+
+    // MoMo payment flow - create order and redirect to MoMo
+    if (selectedPayment.value === 'momo') {
+      const momoResult: any = await $fetch(`${API_BASE_URL}/api/momo/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(getAuthHeader() as Record<string, string>)
+        },
+        body: JSON.stringify(orderBody)
+      })
+
+      if (momoResult.resultCode === 0 && momoResult.payUrl) {
+        // Redirect to MoMo payment page
+        window.location.href = momoResult.payUrl
+        return
+      } else {
+        showError(momoResult.message || 'Không thể tạo thanh toán MoMo. Vui lòng thử lại.')
+        return
+      }
+    }
+
+    // Normal payment flow (COD, bank, card)
+    await $fetch(`${API_BASE_URL}/api/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(getAuthHeader() as Record<string, string>)
+      },
+      body: JSON.stringify(orderBody)
+    })
+
+    await fetchCart()
+    showSuccess('Đặt hàng thành công!')
+    await navigateTo('/orders')
+  } catch (error: any) {
+    console.error('Error placing order:', error)
+    const message = error?.data?.message || 'Không thể đặt hàng. Vui lòng thử lại.'
+    showError(message)
+  } finally {
+    placingOrder.value = false
+  }
 }
 
 // Lifecycle
 onMounted(() => {
-  fetchProvinces()
+  fetchCheckoutCart()
+  fetchShippingProfile()
 })
+
+watch(
+  () => cart.value,
+  () => {
+    syncOrderItemsFromCart()
+  },
+  { deep: true }
+)
+
+// Fetch locker list when smart_locker is selected
+watch(
+  () => selectedShipping.value,
+  (newMethod) => {
+    if (newMethod === 'smart_locker') {
+      fetchLockers()
+    } else {
+      resetLocker()
+    }
+  }
+)
 </script>

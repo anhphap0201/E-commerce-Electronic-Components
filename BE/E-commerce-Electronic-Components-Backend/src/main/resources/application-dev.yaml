@@ -1,6 +1,21 @@
 spring:
   application:
     name: E-commerce-Electronic-Components-Backend
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: trung8d2005@gmail.com
+    password: swjl rmyw mfcl momm
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
   datasource:
     driver-class-name: org.postgresql.Driver
@@ -21,6 +36,7 @@ spring:
       hibernate:
         format_sql: true
         use_sql_comments: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   web:
     error:
       include-message: always
@@ -28,12 +44,30 @@ spring:
 jwt:
   secret-key: 6af834a092761d5d394cf5a1feac20b4e025ce29b09fe355a3b40971b0860095
 
+app:
+  jwt:
+    secret-key: 6af834a092761d5d394cf5a1feac20b4e025ce29b09fe355a3b40971b0860095
+  frontend:
+    url: http://localhost:3000
+
 logging:
   level:
     com.example.ecommerceelectroniccomponentsbackend: DEBUG
     org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.mail: DEBUG
+    jakarta.mail: DEBUG
 
 server:
   port: 8080
+
+
+momo:
+  partner-code: MOMO
+  access-key: F8BBA842ECF85
+  secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
+  api-url: https://test-payment.momo.vn/v2/gateway/api/create
+  return-url: http://localhost:3000/payment/momo-return
+  notify-url: http://localhost:8888/api/momo/ipn
+

@@ -24,12 +24,6 @@ public class Product {
     @Column(nullable = false, unique = true)
     private String slug;
 
-    @Column(name = "short_description", columnDefinition = "TEXT")
-    private String shortDescription;
-
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
     @Column(name = "avg_rating")
     private Double avgRating = 0.0;
 
