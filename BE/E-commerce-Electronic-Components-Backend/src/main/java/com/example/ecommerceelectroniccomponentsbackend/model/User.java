@@ -56,6 +56,9 @@ public class User implements UserDetails {
     @Builder.Default
     private Boolean isActive = true;
 
+    @Column(name = "email_verified")
+    private Boolean emailVerified;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -68,6 +71,9 @@ public class User implements UserDetails {
         updatedAt = LocalDateTime.now();
         if (isActive == null) {
             isActive = true;
+        }
+        if (emailVerified == null) {
+            emailVerified = false;
         }
     }
 

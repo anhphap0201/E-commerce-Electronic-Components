@@ -54,9 +54,19 @@ BE/!**/src/test/**/build/
 
 # Spring Boot
 BE/spring.log
-BE/application-*.yml
-BE/application-*.yaml
-BE/application-*.properties
+
+# Application configuration files - DO NOT COMMIT
+BE/**/application.yml
+BE/**/application.yaml
+BE/**/application.properties
+BE/**/application-*.yml
+BE/**/application-*.yaml
+BE/**/application-*.properties
+
+# Specifically ignore in resources folder
+BE/E-commerce-Electronic-Components-Backend/src/main/resources/application*.yml
+BE/E-commerce-Electronic-Components-Backend/src/main/resources/application*.yaml
+BE/E-commerce-Electronic-Components-Backend/src/main/resources/application*.properties
 
 # IntelliJ IDEA
 BE/.idea/
