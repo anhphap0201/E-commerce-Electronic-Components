@@ -1,6 +1,8 @@
 spring:
   application:
     name: E-commerce-Electronic-Components-Backend
+  profiles:
+    active: dev
 
   servlet:
     multipart:
@@ -13,6 +15,21 @@ spring:
     url: jdbc:postgresql://localhost:5432/test_api
     username: postgres
     password: 123321
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: trung8d2005@gmail.com
+    password: swjl rmyw mfcl momm
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
   data:
     redis:
       host: localhost
@@ -24,6 +41,8 @@ spring:
 app:
   jwt:
     secret-key: 6af834a092761d5d394cf5a1feac20b4e025ce29b09fe355a3b40971b0860095
+  frontend:
+    url: http://localhost:3000
 
 momo:
   partner-code: MOMO

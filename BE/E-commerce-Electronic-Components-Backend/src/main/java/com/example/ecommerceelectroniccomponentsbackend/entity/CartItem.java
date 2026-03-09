@@ -36,10 +36,12 @@ public class CartItem {
     @Builder.Default
     private Integer quantity = 1;
 
-    @Column(nullable = false)
-    private BigDecimal price;
+    // Helper method to get price from product variant
+    public BigDecimal getPrice() {
+        return productVariant != null ? productVariant.getPrice() : BigDecimal.ZERO;
+    }
 
     public BigDecimal getTotalPrice() {
-        return price != null ? price.multiply(new BigDecimal(quantity)) : BigDecimal.ZERO;
+        return getPrice().multiply(new BigDecimal(quantity));
     }
 }

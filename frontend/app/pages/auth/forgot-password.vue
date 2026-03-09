@@ -118,10 +118,10 @@ const handleForgotPassword = async () => {
   statusMessage.value = ''
 
   try {
-    // TODO: Call API to send reset password email
-    await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API call
-    
-    console.log('Forgot password email sent to:', email.value)
+    await $fetch('http://localhost:8080/auth/forgot-password', {
+      method: 'POST',
+      body: { email: email.value },
+    })
     emailSent.value = true
     statusType.value = 'success'
   } catch (error) {
