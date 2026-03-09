@@ -44,9 +44,6 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-2xl font-bold text-gray-800">Danh Mục Sản Phẩm</h2>
-          <NuxtLink to="/categories" class="text-[#09f] hover:text-[#0077cc] font-medium transition-colors duration-200">
-            Xem tất cả →
-          </NuxtLink>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-4">
@@ -54,7 +51,7 @@
             v-for="category in categories"
             :key="category.id"
             class="bg-white rounded-2xl p-4 flex flex-col items-center justify-center gap-3 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:-translate-y-1 cursor-pointer border-2 border-transparent hover:border-[#09f] group"
-            @click="handleSearch(category.name)"
+            @click="handleCategoryClick(category.id)"
           >
             <div class="bg-none w-16 h-16 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:scale-110">
               <img 
@@ -79,9 +76,6 @@
             <h2 class="text-2xl font-bold text-gray-800">Sản Phẩm Đang Sale</h2>
             <p class="text-sm text-gray-500 mt-1">Giảm giá lên đến 50%</p>
           </div>
-          <NuxtLink to="/sale" class="text-[#09f] hover:text-[#0077cc] font-medium transition-colors duration-200">
-            Xem tất cả →
-          </NuxtLink>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
@@ -126,7 +120,7 @@
                   Mua ngay
                 </button>
                 <button @click.prevent="addToCart(product.id)" class="w-10 h-10 border-2 border-gray-200 rounded-xl flex items-center justify-center transition-all duration-300 hover:border-[#09f] hover:text-[#09f] hover:scale-105 active:scale-95">
-                  🛒
+                  +
                 </button>
               </div>
             </div>
@@ -291,10 +285,9 @@ const formatPrice = (price: number) => {
     currency: 'VND'
   }).format(price)
 }
-const handleSearch = (categoryName: string) => {
-  if (categoryName?.trim()) {
-    navigateTo(`/search?q=${encodeURIComponent(categoryName)}`)
-  }
+
+const handleCategoryClick = (categoryId: number) => {
+  navigateTo(`/search?category=${categoryId}`)
 }
 
 const buyNow = (productId: number) => {

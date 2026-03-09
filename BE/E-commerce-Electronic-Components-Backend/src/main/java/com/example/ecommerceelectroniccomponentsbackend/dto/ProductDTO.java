@@ -4,17 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductDTO {
     private Long id;
     private String name;
-    private String sku;
-    private String description;
-    private Double price;
-    private Long categoryId;
-    private String categoryName;
-    private Long createdAt;
-    private Long updatedAt;
+    private String slug;
+    private Double avgRating;
+    private Integer soldQuantity;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

@@ -17,7 +17,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
-import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +37,6 @@ public class AuthenticationService {
         User user = (User) authenticate.getPrincipal();
         TokenPayload accessPayload = jwtService.generateAccessToken(user);
         TokenPayload refreshPayload = jwtService.generateRefreshToken(user);
-
         long refreshTtl =
                 refreshPayload.getExpiredTime().getTime() - System.currentTimeMillis();
 
@@ -52,6 +50,9 @@ public class AuthenticationService {
         return LoginResponse.builder()
                 .accessToken(accessPayload.getToken())
                 .refreshToken(refreshPayload.getToken())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .role(user.getRole())
                 .build();
     }
 

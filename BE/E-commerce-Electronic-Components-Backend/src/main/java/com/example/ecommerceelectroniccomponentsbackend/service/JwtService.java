@@ -24,9 +24,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class JwtService {
 
-    @Value("${jwt.secret-key}")
-    private String secretKey;
     private final BlacklistedTokenRepository blacklistedTokenRepository;
+    @Value("${app.jwt.secret-key}")
+    private String secretKey;
 
     public TokenPayload generateAccessToken(User user) {
 
@@ -37,10 +37,11 @@ public class JwtService {
         Date expirationTime = Date.from(issueTime.toInstant().plus(30, ChronoUnit.MINUTES));
         String jwtId = UUID.randomUUID().toString();
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getEmail())
+                .subject(String.valueOf(user.getId()))  // Use user ID as subject
                 .issueTime(issueTime)
                 .expirationTime(expirationTime)
                 .jwtID(jwtId)
+                .claim("email", user.getEmail())  // Store email as claim
                 .claim("role", user.getRole().name())
                 .claim("scope", user.getRole().name())
                 .build();
@@ -90,7 +91,7 @@ public class JwtService {
         } catch (JOSEException e) {
             throw new RuntimeException("Error while signing the token", e);
         }
-        String token =  jwsObject.serialize();
+        String token = jwsObject.serialize();
         return TokenPayload.builder()
                 .token(token)
                 .jwtId(jwtId)
@@ -108,7 +109,7 @@ public class JwtService {
         }
         String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
         Optional<BlacklistedToken> byId = blacklistedTokenRepository.findById(jwtId);
-        if(byId.isPresent()) {
+        if (byId.isPresent()) {
             return false;
         }
         return signedJWT.verify(new MACVerifier(secretKey));
