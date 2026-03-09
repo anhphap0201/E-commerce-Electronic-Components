@@ -6,7 +6,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/test_api
     username: postgres
-    password: 123321
+    password: 123456
 
   data:
     redis:
@@ -21,6 +21,7 @@ spring:
       hibernate:
         format_sql: true
         use_sql_comments: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   web:
     error:
       include-message: always
@@ -36,7 +37,7 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 server:
-  port: 8888
+  port: 8080
 
 momo:
   partner-code: MOMO
