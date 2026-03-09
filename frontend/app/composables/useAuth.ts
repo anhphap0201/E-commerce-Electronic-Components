@@ -17,26 +17,26 @@ const isAuthenticated = computed(() => !!user.value && !!token.value)
 const initializeAuth = () => {
   if (isInitialized.value || !import.meta.client) return
   
-  console.log('🔐 Initializing auth...')
+  console.log('Initializing auth...')
   isInitialized.value = true
   const storedToken = localStorage.getItem('token')
   const storedUser = localStorage.getItem('user')
   
-  console.log('🔑 Stored token:', storedToken ? `${storedToken.substring(0, 20)}...` : 'NO TOKEN')
-  console.log('👤 Stored user:', storedUser ? JSON.parse(storedUser).email : 'NO USER')
+  console.log('Stored token:', storedToken ? `${storedToken.substring(0, 20)}...` : 'NO TOKEN')
+  console.log('Stored user:', storedUser ? JSON.parse(storedUser).email : 'NO USER')
   
   if (storedToken && storedUser) {
     try {
       token.value = storedToken
       user.value = JSON.parse(storedUser)
-      console.log('✅ Auth initialized successfully')
+      console.log('Auth initialized successfully')
     } catch (e) {
-      console.error('❌ Error parsing stored user:', e)
+      console.error('Error parsing stored user:', e)
       localStorage.removeItem('token')
       localStorage.removeItem('user')
     }
   } else {
-    console.warn('⚠️ No stored auth data found')
+    console.warn('No stored auth data found')
   }
 }
 
@@ -47,9 +47,9 @@ export const useAuth = () => {
   }
 
   const login = (userData: User, authToken: string) => {
-    console.log('🔐 Login called')
-    console.log('👤 User data:', userData.email)
-    console.log('🔑 Token:', authToken ? `${authToken.substring(0, 20)}...` : 'NO TOKEN')
+    console.log('Login called')
+    console.log('User data:', userData.email)
+    console.log('Token:', authToken ? `${authToken.substring(0, 20)}...` : 'NO TOKEN')
     
     user.value = userData
     token.value = authToken
@@ -57,7 +57,7 @@ export const useAuth = () => {
     if (import.meta.client) {
       localStorage.setItem('token', authToken)
       localStorage.setItem('user', JSON.stringify(userData))
-      console.log('✅ Auth data saved to localStorage')
+      console.log('Auth data saved to localStorage')
     }
   }
 

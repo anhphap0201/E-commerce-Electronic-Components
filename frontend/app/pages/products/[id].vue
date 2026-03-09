@@ -382,7 +382,7 @@
                 </div>
                 <div class="flex-1 space-y-2">
                   <div v-for="star in [5, 4, 3, 2, 1]" :key="star" class="flex items-center gap-3">
-                    <span class="text-sm text-gray-600 w-8">{{ star }}⭐</span>
+                    <span class="text-sm text-gray-600 w-8">{{ star }}</span>
                     <div class="flex-1 bg-gray-200 rounded-full h-2">
                       <div 
                         :style="{ width: `${ratingPercent(star)}%` }"

@@ -526,14 +526,14 @@ const paymentMethods = [
     id: 'cod',
     name: 'Thanh toán khi nhận hàng (COD)',
     description: 'Thanh toán bằng tiền mặt khi nhận hàng',
-    icon: '💵',
+    icon: 'COD',
     image: '/payment method/icons8-dollar-50.png'
   },
   {
     id: 'momo',
     name: 'Ví MoMo',
     description: 'Thanh toán qua ví điện tử MoMo',
-    icon: '📱',
+    icon: 'MOMO',
     image: '/payment method/MOMO-Logo-App.png'
   }
 ]

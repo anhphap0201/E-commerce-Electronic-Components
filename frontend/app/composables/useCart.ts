@@ -49,7 +49,7 @@ export const useCart = () => {
 
     try {
       const token = authToken.value
-      console.log('🔑 Token for fetchCart:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN')
+      console.log('Token for fetchCart:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN')
       
       if (!token) {
         throw new Error('Bạn cần đăng nhập để xem giỏ hàng')
@@ -62,11 +62,11 @@ export const useCart = () => {
         }
       })
 
-      console.log('📦 fetchCart response status:', response.status)
+      console.log('fetchCart response status:', response.status)
 
       if (response.status === 401) {
         // Don't auto-logout, just show empty cart
-        console.warn('⚠️ 401 Unauthorized - token invalid or expired')
+        console.warn('401 Unauthorized - token invalid or expired')
         cart.value = null
         return
       }
@@ -76,11 +76,11 @@ export const useCart = () => {
       }
 
       cart.value = await response.json()
-      console.log('✅ Cart loaded successfully:', cart.value)
+      console.log('Cart loaded successfully:', cart.value)
     } catch (err: any) {
       error.value = err.message
       showError(err.message)
-      console.error('❌ Cart fetch error:', err)
+      console.error('Cart fetch error:', err)
     } finally {
       loading.value = false
     }
@@ -88,7 +88,7 @@ export const useCart = () => {
 
   // Add item to cart (authenticated users only)
   const addToCart = async (productVariantId: number, quantity: number = 1, price: number) => {
-    console.log('🛒 addToCart called:', { productVariantId, quantity, price, isAuthenticated: isAuthenticated.value })
+    console.log('addToCart called:', { productVariantId, quantity, price, isAuthenticated: isAuthenticated.value })
     
     if (!isAuthenticated.value) {
       showError('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng')
@@ -100,7 +100,7 @@ export const useCart = () => {
 
     try {
       const token = authToken.value
-      console.log('🔑 Token for addToCart:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN')
+      console.log('Token for addToCart:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN')
       
       if (!token) {
         showError('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng')
@@ -113,7 +113,7 @@ export const useCart = () => {
         price
       }
 
-      console.log('📤 Request body:', requestBody)
+      console.log('Request body:', requestBody)
 
       const response = await fetch(`${API_BASE_URL}/api/cart/items`, {
         method: 'POST',
@@ -124,10 +124,10 @@ export const useCart = () => {
         body: JSON.stringify(requestBody)
       })
 
-      console.log('📦 addToCart response status:', response.status)
+      console.log('addToCart response status:', response.status)
 
       if (response.status === 401) {
-        console.warn('⚠️ 401 Unauthorized - redirecting to login')
+        console.warn('401 Unauthorized - redirecting to login')
         showError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
         // Redirect to login without full page reload
         router.push('/auth/auth')
@@ -140,13 +140,13 @@ export const useCart = () => {
       }
 
       cart.value = await response.json()
-      console.log('✅ Added to cart successfully:', cart.value)
+      console.log('Added to cart successfully:', cart.value)
       success('Đã thêm sản phẩm vào giỏ hàng')
       return true
     } catch (err: any) {
       error.value = err.message
       showError(err.message)
-      console.error('❌ addToCart error:', err)
+      console.error('addToCart error:', err)
       return false
     } finally {
       loading.value = false

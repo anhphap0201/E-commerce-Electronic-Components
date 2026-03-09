@@ -403,7 +403,7 @@ const searchProducts = async () => {
         filterRequest.categoryId = selectedCategory.value
       }
 
-      console.log('📤 Filter Request:', filterRequest)
+      console.log('Filter Request:', filterRequest)
 
       // POST /api/products/search/filter
       apiUrl = `${API_BASE_URL}/products/search/filter`
@@ -413,10 +413,10 @@ const searchProducts = async () => {
       })
     }
 
-    console.log('🔍 API Called:', apiUrl)
-    console.log('📦 Response:', result)
-    console.log('📊 Response Type:', typeof result)
-    console.log('📋 Is Array:', Array.isArray(result))
+    console.log('API Called:', apiUrl)
+    console.log('Response:', result)
+    console.log('Response Type:', typeof result)
+    console.log('Is Array:', Array.isArray(result))
 
     if (result) {
       // Nếu result là array trực tiếp (không có pagination)
@@ -463,7 +463,7 @@ const searchProducts = async () => {
       }
     }
   } catch (error: any) {
-    console.error('❌ Error searching products:', error)
+    console.error('Error searching products:', error)
     products.value = []
     totalElements.value = 0
   } finally {

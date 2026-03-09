@@ -120,7 +120,7 @@
                   Mua ngay
                 </button>
                 <button @click.prevent="addToCart(product.id)" class="w-10 h-10 border-2 border-gray-200 rounded-xl flex items-center justify-center transition-all duration-300 hover:border-[#09f] hover:text-[#09f] hover:scale-105 active:scale-95">
-                  🛒
+                  +
                 </button>
               </div>
             </div>
