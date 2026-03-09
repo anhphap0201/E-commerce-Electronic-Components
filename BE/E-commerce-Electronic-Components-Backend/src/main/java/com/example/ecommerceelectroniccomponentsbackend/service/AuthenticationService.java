@@ -2,21 +2,30 @@ package com.example.ecommerceelectroniccomponentsbackend.service;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.JwtInfo;
 import com.example.ecommerceelectroniccomponentsbackend.dto.TokenPayload;
+import com.example.ecommerceelectroniccomponentsbackend.dto.request.ForgotPasswordRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.request.LoginRequest;
+import com.example.ecommerceelectroniccomponentsbackend.dto.request.ResetPasswordRequest;
+import com.example.ecommerceelectroniccomponentsbackend.dto.response.ForgotPasswordResponse;
 import com.example.ecommerceelectroniccomponentsbackend.dto.response.LoginResponse;
+import com.example.ecommerceelectroniccomponentsbackend.dto.response.ResetPasswordResponse;
 import com.example.ecommerceelectroniccomponentsbackend.model.BlacklistedToken;
+import com.example.ecommerceelectroniccomponentsbackend.model.PasswordResetToken;
 import com.example.ecommerceelectroniccomponentsbackend.model.RefreshToken;
 import com.example.ecommerceelectroniccomponentsbackend.model.User;
 import com.example.ecommerceelectroniccomponentsbackend.repository.BlacklistedTokenRepository;
+import com.example.ecommerceelectroniccomponentsbackend.repository.PasswordResetTokenRepository;
 import com.example.ecommerceelectroniccomponentsbackend.repository.RefreshTokenRepository;
+import com.example.ecommerceelectroniccomponentsbackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +35,10 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final BlacklistedTokenRepository blacklistedTokenRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final UserRepository userRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
     public LoginResponse login(LoginRequest request) {
 
@@ -75,6 +88,82 @@ public class AuthenticationService {
         refreshTokenRepository.deleteById(refreshInfo.getJwtId());
 
         log.info("Logout success");
+    }
+
+    public ForgotPasswordResponse forgotPassword(ForgotPasswordRequest request) {
+        log.info("Forgot password request for email: {}", request.getEmail());
+
+        // Check if user exists
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("User with this email does not exist"));
+
+        // Generate reset token
+        String resetToken = UUID.randomUUID().toString();
+
+        // Save token to Redis with 1 hour expiration
+        long ttl = 60 * 60 * 1000;
+
+        try {
+            passwordResetTokenRepository.save(PasswordResetToken.builder()
+                    .token(resetToken)
+                    .email(user.getEmail())
+                    .ttl(ttl)
+                    .build()
+            );
+            log.info("Password reset token saved to Redis");
+        } catch (Exception e) {
+            log.error("Failed to save token to Redis: {}", e.getMessage());
+            throw new RuntimeException("Không thể tạo token đặt lại mật khẩu. Vui lòng kiểm tra Redis service.");
+        }
+
+        // Send email
+        try {
+            emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
+            log.info("Password reset email sent successfully to: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send email: {}", e.getMessage(), e);
+            try {
+                passwordResetTokenRepository.deleteById(resetToken);
+            } catch (Exception ex) {
+                log.error("Failed to cleanup token: {}", ex.getMessage());
+            }
+            throw new RuntimeException("Không thể gửi email đặt lại mật khẩu. Vui lòng kiểm tra cấu hình email.");
+        }
+
+        return ForgotPasswordResponse.builder()
+                .message("Một email đặt lại mật khẩu đã được gửi đến địa chỉ email của bạn. Vui lòng kiểm tra hộp thư.")
+                .email(user.getEmail())
+                .build();
+    }
+
+    public ResetPasswordResponse resetPassword(ResetPasswordRequest request) {
+        log.info("Reset password request with token");
+
+        // Validate token
+        PasswordResetToken resetToken = passwordResetTokenRepository.findById(request.getToken())
+                .orElseThrow(() -> new IllegalArgumentException("Token không hợp lệ hoặc đã hết hạn"));
+
+        // Validate passwords match
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalArgumentException("Mật khẩu xác nhận không khớp");
+        }
+
+        // Get user and update password
+        User user = userRepository.findByEmail(resetToken.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        // Delete the used token
+        passwordResetTokenRepository.delete(resetToken);
+
+        log.info("Password reset successfully for user: {}", user.getEmail());
+
+        return ResetPasswordResponse.builder()
+                .message("Mật khẩu của bạn đã được đặt lại thành công. Vui lòng đăng nhập với mật khẩu mới.")
+                .email(user.getEmail())
+                .build();
     }
 
 }
