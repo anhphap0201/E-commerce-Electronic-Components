@@ -9,9 +9,11 @@ import com.example.ecommerceelectroniccomponentsbackend.dto.response.RegisterRes
 import com.example.ecommerceelectroniccomponentsbackend.dto.response.UserCreateResponse;
 import com.example.ecommerceelectroniccomponentsbackend.dto.response.UserProfileResponse;
 import com.example.ecommerceelectroniccomponentsbackend.model.BlacklistedToken;
+import com.example.ecommerceelectroniccomponentsbackend.model.EmailVerificationToken;
 import com.example.ecommerceelectroniccomponentsbackend.model.Role;
 import com.example.ecommerceelectroniccomponentsbackend.model.User;
 import com.example.ecommerceelectroniccomponentsbackend.repository.BlacklistedTokenRepository;
+import com.example.ecommerceelectroniccomponentsbackend.repository.EmailVerificationTokenRepository;
 import com.example.ecommerceelectroniccomponentsbackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +32,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final BlacklistedTokenRepository blacklistedTokenRepository;
+    private final EmailVerificationTokenRepository emailVerificationTokenRepository;
+    private final EmailService emailService;
 
     public UserCreateResponse createUser(UserCreateRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -57,15 +62,51 @@ public class UserService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .fullName(request.getFullName())
                 .role(request.getRole() != null ? request.getRole() : Role.ROLE_USER)
+                .isActive(false) // User inactive until email verified
+                .emailVerified(false)
                 .build();
 
         userRepository.save(user);
 
+        // Send verification email
+        try {
+            sendVerificationEmail(user.getEmail());
+        } catch (Exception e) {
+            System.out.println(("Failed to send verification email: {}" + e.getMessage()));
+        }
+
         return RegisterResponse.builder()
                 .email(user.getEmail())
                 .role(user.getRole())
-                .message("User registered successfully")
+                .message("Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.")
                 .build();
+    }
+
+    private void sendVerificationEmail(String email) {
+
+
+        // Generate verification token
+        String verificationToken = UUID.randomUUID().toString();
+
+        // Save token to Redis with 24 hours expiration
+        long ttl = 24 * 60 * 60 * 1000; // 24 hours
+
+        try {
+            // Delete old token if exists
+            emailVerificationTokenRepository.deleteByEmail(email);
+
+            emailVerificationTokenRepository.save(EmailVerificationToken.builder()
+                    .token(verificationToken)
+                    .email(email)
+                    .ttl(ttl)
+                    .build()
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Không thể tạo token xác thực email.");
+        }
+
+        // Send email
+        emailService.sendVerificationEmail(email, verificationToken);
     }
 
     public ChangePasswordResponse changePassword(ChangePasswordRequest request) {

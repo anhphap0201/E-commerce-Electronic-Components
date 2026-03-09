@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -107,6 +109,34 @@ public class AuthenticationController {
             @Valid @RequestBody ResetPasswordRequest request
     ) {
         ResetPasswordResponse response = authenticationService.resetPassword(request);
+        return ResponseEntity.ok(response);
+    }
+
+
+    @PostMapping("/auth/verify-email")
+    public ResponseEntity<VerifyEmailResponse> verifyEmail(
+            @Valid @RequestBody VerifyEmailRequest request
+    ) {
+        log.info("Email verification request received");
+        VerifyEmailResponse response = authenticationService.verifyEmail(request);
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/auth/resend-verification")
+    public ResponseEntity<Map<String, String>> resendVerification(
+            @RequestBody Map<String, String> request
+    ) {
+        String email = request.get("email");
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+
+        log.info("Resend verification email request for: {}", email);
+        authenticationService.sendVerificationEmail(email);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Email xác thực đã được gửi lại. Vui lòng kiểm tra hộp thư của bạn.");
+        response.put("email", email);
         return ResponseEntity.ok(response);
     }
 

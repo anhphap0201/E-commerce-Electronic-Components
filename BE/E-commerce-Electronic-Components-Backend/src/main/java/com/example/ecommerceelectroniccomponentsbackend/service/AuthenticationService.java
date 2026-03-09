@@ -5,17 +5,13 @@ import com.example.ecommerceelectroniccomponentsbackend.dto.TokenPayload;
 import com.example.ecommerceelectroniccomponentsbackend.dto.request.ForgotPasswordRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.request.LoginRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.request.ResetPasswordRequest;
+import com.example.ecommerceelectroniccomponentsbackend.dto.request.VerifyEmailRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.response.ForgotPasswordResponse;
 import com.example.ecommerceelectroniccomponentsbackend.dto.response.LoginResponse;
 import com.example.ecommerceelectroniccomponentsbackend.dto.response.ResetPasswordResponse;
-import com.example.ecommerceelectroniccomponentsbackend.model.BlacklistedToken;
-import com.example.ecommerceelectroniccomponentsbackend.model.PasswordResetToken;
-import com.example.ecommerceelectroniccomponentsbackend.model.RefreshToken;
-import com.example.ecommerceelectroniccomponentsbackend.model.User;
-import com.example.ecommerceelectroniccomponentsbackend.repository.BlacklistedTokenRepository;
-import com.example.ecommerceelectroniccomponentsbackend.repository.PasswordResetTokenRepository;
-import com.example.ecommerceelectroniccomponentsbackend.repository.RefreshTokenRepository;
-import com.example.ecommerceelectroniccomponentsbackend.repository.UserRepository;
+import com.example.ecommerceelectroniccomponentsbackend.dto.response.VerifyEmailResponse;
+import com.example.ecommerceelectroniccomponentsbackend.model.*;
+import com.example.ecommerceelectroniccomponentsbackend.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -39,6 +35,7 @@ public class AuthenticationService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationTokenRepository emailVerificationTokenRepository;
 
     public LoginResponse login(LoginRequest request) {
 
@@ -165,5 +162,85 @@ public class AuthenticationService {
                 .email(user.getEmail())
                 .build();
     }
+
+    public VerifyEmailResponse verifyEmail(VerifyEmailRequest request) {
+        log.info("Email verification request with token");
+
+        // Validate token
+        EmailVerificationToken verificationToken = emailVerificationTokenRepository.findById(request.getToken())
+                .orElseThrow(() -> new IllegalArgumentException("Token không hợp lệ hoặc đã hết hạn"));
+
+        // Get user and verify email
+        User user = userRepository.findByEmail(verificationToken.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getEmailVerified() != null && user.getEmailVerified()) {
+            throw new IllegalArgumentException("Email đã được xác thực trước đó");
+        }
+
+        user.setEmailVerified(true);
+        user.setIsActive(true);
+        userRepository.save(user);
+
+        // Delete the used token
+        emailVerificationTokenRepository.delete(verificationToken);
+
+        log.info("Email verified successfully for user: {}", user.getEmail());
+
+        return VerifyEmailResponse.builder()
+                .message("Email của bạn đã được xác thực thành công. Bây giờ bạn có thể đăng nhập.")
+                .email(user.getEmail())
+                .verified(true)
+                .build();
+    }
+
+    public void sendVerificationEmail(String email) {
+        log.info("Sending verification email to: {}", email);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getEmailVerified() != null && user.getEmailVerified()) {
+            throw new IllegalArgumentException("Email đã được xác thực");
+        }
+
+        // Generate verification token
+        String verificationToken = UUID.randomUUID().toString();
+
+        // Save token to Redis with 24 hours expiration
+        long ttl = 24 * 60 * 60 * 1000; // 24 hours
+
+        try {
+            // Delete old token if exists
+            emailVerificationTokenRepository.deleteByEmail(email);
+
+            emailVerificationTokenRepository.save(EmailVerificationToken.builder()
+                    .token(verificationToken)
+                    .email(email)
+                    .ttl(ttl)
+                    .build()
+            );
+            log.info("Email verification token saved to Redis");
+        } catch (Exception e) {
+            log.error("Failed to save verification token to Redis: {}", e.getMessage());
+            throw new RuntimeException("Không thể tạo token xác thực email. Vui lòng thử lại sau.");
+        }
+
+        // Send email
+        try {
+            emailService.sendVerificationEmail(email, verificationToken);
+            log.info("Verification email sent successfully to: {}", email);
+        } catch (Exception e) {
+            log.error("Failed to send verification email: {}", e.getMessage(), e);
+            try {
+                emailVerificationTokenRepository.deleteById(verificationToken);
+            } catch (Exception ex) {
+                log.error("Failed to cleanup token: {}", ex.getMessage());
+            }
+            throw new RuntimeException("Không thể gửi email xác thực. Vui lòng thử lại sau.");
+        }
+    }
+
+
 
 }
