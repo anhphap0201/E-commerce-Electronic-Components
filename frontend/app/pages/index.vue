@@ -172,88 +172,7 @@ const getCategoryImage = (category: any) => {
   return category.imageUrl || categoryImages[category.name] || categoryImages['default']
 }
 
-const saleProducts = [
-  {
-    id: 1,
-    name: 'Arduino Uno R3 - Bo mạch phát triển',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 200000,
-    salePrice: 140000,
-    discount: 30
-  },
-  {
-    id: 2,
-    name: 'ESP32 DevKit V1 - WiFi Bluetooth',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 150000,
-    salePrice: 105000,
-    discount: 30
-  },
-  {
-    id: 3,
-    name: 'Raspberry Pi 4 Model B 4GB RAM',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 1500000,
-    salePrice: 1200000,
-    discount: 20
-  },
-  {
-    id: 4,
-    name: 'LED RGB 5050 SMD - 100 chiếc',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 100000,
-    salePrice: 70000,
-    discount: 30
-  },
-  {
-    id: 5,
-    name: 'Cảm biến nhiệt độ DHT11',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 50000,
-    salePrice: 35000,
-    discount: 30
-  },
-  {
-    id: 6,
-    name: 'Motor DC 6V giảm tốc',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 80000,
-    salePrice: 56000,
-    discount: 30
-  },
-  {
-    id: 7,
-    name: 'Relay 5V 1 kênh',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 30000,
-    salePrice: 21000,
-    discount: 30
-  },
-  {
-    id: 8,
-    name: 'Màn hình LCD 16x2',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 120000,
-    salePrice: 84000,
-    discount: 30
-  },
-  {
-    id: 9,
-    name: 'Cảm biến siêu âm HC-SR04',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 40000,
-    salePrice: 28000,
-    discount: 30
-  },
-  {
-    id: 10,
-    name: 'Module Bluetooth HC-05',
-    img: '/images/Edunera_Logo_512.png',
-    originalPrice: 90000,
-    salePrice: 63000,
-    discount: 30
-  }
-]
+const saleProducts = ref<any[]>([])
 
 const currentBanner = ref(0)
 let bannerInterval: ReturnType<typeof setInterval>
@@ -270,6 +189,29 @@ onMounted(async () => {
     categories.value = data as any[]
   } catch (error) {
     console.error('Error fetching categories:', error)
+  }
+
+  // Fetch sale products from API
+  try {
+    const data = await $fetch<any>('http://localhost:8080/api/products/search/filter/on-sale?page=0&size=10')
+    const items = data.content || data
+    saleProducts.value = (items as any[]).map((p: any) => {
+      const minPrice = p.minDiscountPrice || p.minPrice || 0
+      const originalPrice = p.minPrice || 0
+      const discount = originalPrice > 0 && minPrice < originalPrice
+        ? Math.round((1 - minPrice / originalPrice) * 100)
+        : 0
+      return {
+        id: p.id,
+        name: p.name,
+        img: p.defaultImageUrl ? `http://localhost:8080${p.defaultImageUrl}` : '/images/Edunera_Logo_512.png',
+        originalPrice: Number(originalPrice),
+        salePrice: Number(minPrice),
+        discount,
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching sale products:', error)
   }
 })
 

@@ -65,6 +65,7 @@ public class CartService {
                     .cart(cart)
                     .productVariant(variant)
                     .quantity(cartItemDTO.getQuantity())
+                    .price(variant.getPrice())
                     .build();
             cart.getCartItems().add(cartItemRepository.save(newItem));
             log.info("Added new item to cart for variant: {}", cartItemDTO.getProductVariantId());

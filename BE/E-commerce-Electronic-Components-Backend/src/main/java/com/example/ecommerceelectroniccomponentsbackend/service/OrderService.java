@@ -1,5 +1,6 @@
 package com.example.ecommerceelectroniccomponentsbackend.service;
 
+import com.example.ecommerceelectroniccomponentsbackend.dto.DeliveryWebhookRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.CreateOrderRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.OrderDTO;
 import com.example.ecommerceelectroniccomponentsbackend.dto.SmartLockerDTO;
@@ -229,36 +230,13 @@ public class OrderService {
         Order order = resolveOrderByReference(normalizedReference)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 
-        String deliveryStatus = firstNonBlank(order.getDeliveryStatus(), mapInternalStatusToDeliveryStatus(order.getStatus()));
-        String recipientOTP = order.getRecipientOTP();
-        String senderOTP = order.getSenderOTP();
-        
-        String lockerOrderId = order.getLockerOrderId();
-        if (lockerOrderId != null && !lockerOrderId.isBlank() && !isCompletedDeliveryStatus(deliveryStatus)) {
-            try {
-                // Fetch all user orders from smart locker with delivery status and OTP
-                List<SmartLockerDTO.UserOrderResponse> userOrders = smartLockerService.getUserOrders(order.getUserId());
-                SmartLockerDTO.UserOrderResponse matchingOrder = userOrders.stream()
-                        .filter(smartOrder -> matchesAnyReference(smartOrder.getOrderId(), lockerOrderId, order.getOrderNumber(), normalizedReference))
-                        .findFirst()
-                        .orElse(null);
-                
-                if (matchingOrder != null) {
-                    if (matchingOrder.getDeliveryStatus() != null && !matchingOrder.getDeliveryStatus().isBlank()) {
-                        deliveryStatus = matchingOrder.getDeliveryStatus();
-                    }
-                    if (matchingOrder.getRecipientOTP() != null && !matchingOrder.getRecipientOTP().isBlank()) {
-                        recipientOTP = matchingOrder.getRecipientOTP();
-                    }
-                    if (matchingOrder.getSenderOTP() != null && !matchingOrder.getSenderOTP().isBlank()) {
-                        senderOTP = matchingOrder.getSenderOTP();
-                    }
-                    persistDeliverySync(order, deliveryStatus, recipientOTP, senderOTP);
-                }
-            } catch (IllegalStateException ex) {
-                log.warn("Smart locker API unavailable for user {}. Fallback to internal data. Reason: {}",
-                        order.getUserId(), ex.getMessage());
-            }
+        String deliveryStatus = order.getDeliveryStatus();
+        if (deliveryStatus == null || deliveryStatus.isBlank()) {
+            deliveryStatus = mapInternalStatusToDeliveryStatus(order.getStatus());
+        }
+        // If order is cancelled, always reflect that
+        if (order.getStatus() == Order.OrderStatus.CANCELLED) {
+            deliveryStatus = "cancelled";
         }
 
         Map<String, Object> response = new LinkedHashMap<>();
@@ -268,10 +246,87 @@ public class OrderService {
         response.put("deliveryStatus", deliveryStatus);
         response.put("status", order.getStatus().name());
         response.put("shippingMethod", order.getShippingMethod());
-        response.put("recipientOTP", recipientOTP);
-        response.put("senderOTP", senderOTP);
+        response.put("recipientOTP", order.getRecipientOTP());
+        response.put("senderOTP", order.getSenderOTP());
         response.put("updatedAt", getEffectiveUpdatedAt(order));
         return response;
+    }
+
+    @Transactional
+    public Map<String, Object> handleDeliveryWebhook(DeliveryWebhookRequest request) {
+        log.info("Processing delivery webhook: orderRef={}, status={}",
+                request.getOrderReference(), request.getDeliveryStatus());
+
+        String ref = request.getOrderReference();
+        if (ref == null || ref.isBlank()) {
+            throw new IllegalArgumentException("orderReference is required");
+        }
+
+        Order order = resolveOrderByReference(ref.trim())
+                .orElseThrow(() -> new IllegalArgumentException("Order not found for reference: " + ref));
+
+        boolean changed = false;
+
+        // Update delivery status
+        if (request.getDeliveryStatus() != null && !request.getDeliveryStatus().isBlank()) {
+            order.setDeliveryStatus(request.getDeliveryStatus().toUpperCase());
+            changed = true;
+
+            // Sync order status based on delivery status
+            String ds = request.getDeliveryStatus().toUpperCase();
+            switch (ds) {
+                case "CONFIRMED":
+                    if (order.getStatus() == Order.OrderStatus.PENDING) {
+                        order.setStatus(Order.OrderStatus.CONFIRMED);
+                        order.setConfirmedAt(LocalDateTime.now());
+                    }
+                    break;
+                case "SHIPPED": case "IN_TRANSIT":
+                    if (order.getStatus() != Order.OrderStatus.CANCELLED) {
+                        order.setStatus(Order.OrderStatus.SHIPPED);
+                        order.setShippedAt(LocalDateTime.now());
+                    }
+                    break;
+                case "DELIVERED": case "DELIVERED_TO_LOCKER": case "PICKED_UP": case "COMPLETED":
+                    if (order.getStatus() != Order.OrderStatus.CANCELLED) {
+                        order.setStatus(Order.OrderStatus.DELIVERED);
+                        order.setDeliveredAt(LocalDateTime.now());
+                    }
+                    break;
+                case "CANCELLED":
+                    order.setStatus(Order.OrderStatus.CANCELLED);
+                    order.setCancelledAt(LocalDateTime.now());
+                    break;
+            }
+        }
+
+        // Update OTP
+        if (request.getSenderOTP() != null && !request.getSenderOTP().isBlank()) {
+            order.setSenderOTP(request.getSenderOTP());
+            changed = true;
+        }
+        if (request.getRecipientOTP() != null && !request.getRecipientOTP().isBlank()) {
+            order.setRecipientOTP(request.getRecipientOTP());
+            changed = true;
+        }
+
+        // Update compartment
+        if (request.getCompartmentId() != null && !request.getCompartmentId().isBlank()) {
+            order.setCompartmentId(request.getCompartmentId());
+            changed = true;
+        }
+
+        if (changed) {
+            orderRepository.save(order);
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("success", true);
+        result.put("orderId", order.getId());
+        result.put("orderNumber", order.getOrderNumber());
+        result.put("status", order.getStatus().name());
+        result.put("deliveryStatus", order.getDeliveryStatus());
+        return result;
     }
 
     private java.util.Optional<Order> resolveOrderByReference(String orderReference) {
@@ -285,65 +340,6 @@ public class OrderService {
         }
         return orderRepository.findByOrderNumber(orderReference)
                 .or(() -> orderRepository.findByLockerOrderId(orderReference));
-    }
-
-    private boolean matchesAnyReference(String source, String... references) {
-        if (source == null || source.isBlank()) {
-            return false;
-        }
-        String normalizedSource = source.trim();
-        for (String reference : references) {
-            if (reference != null && !reference.isBlank() && normalizedSource.equalsIgnoreCase(reference.trim())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void persistDeliverySync(Order order, String deliveryStatus, String recipientOTP, String senderOTP) {
-        boolean changed = false;
-
-        if (!sameText(order.getDeliveryStatus(), deliveryStatus) && deliveryStatus != null && !deliveryStatus.isBlank()) {
-            order.setDeliveryStatus(deliveryStatus);
-            changed = true;
-        }
-        if (!sameText(order.getRecipientOTP(), recipientOTP) && recipientOTP != null && !recipientOTP.isBlank()) {
-            order.setRecipientOTP(recipientOTP);
-            changed = true;
-        }
-        if (!sameText(order.getSenderOTP(), senderOTP) && senderOTP != null && !senderOTP.isBlank()) {
-            order.setSenderOTP(senderOTP);
-            changed = true;
-        }
-
-        if (changed) {
-            orderRepository.save(order);
-        }
-    }
-
-    private boolean sameText(String left, String right) {
-        if (left == null && right == null) {
-            return true;
-        }
-        if (left == null || right == null) {
-            return false;
-        }
-        return left.equals(right);
-    }
-
-    private String firstNonBlank(String preferred, String fallback) {
-        if (preferred != null && !preferred.isBlank()) {
-            return preferred;
-        }
-        return fallback;
-    }
-
-    private boolean isCompletedDeliveryStatus(String deliveryStatus) {
-        if (deliveryStatus == null || deliveryStatus.isBlank()) {
-            return false;
-        }
-        String normalized = deliveryStatus.trim().toLowerCase(Locale.ROOT);
-        return "completed".equals(normalized);
     }
 
     private LocalDateTime getEffectiveUpdatedAt(Order order) {
@@ -401,14 +397,22 @@ public class OrderService {
     public OrderDTO cancelOrder(Long orderId, Long userId) {
         log.info("Cancelling order: {} for user: {}", orderId, userId);
 
-        Order order = orderRepository.findByIdAndUserId(orderId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found or does not belong to user"));
+        Order order = orderRepository.findByIdAndUserIdWithItems(orderId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("Kh\u00f4ng t\u00ecm th\u1ea5y \u0111\u01a1n h\u00e0ng"));
 
+        if (order.getStatus() == Order.OrderStatus.CANCELLED) {
+            throw new IllegalArgumentException("\u0110\u01a1n h\u00e0ng \u0111\u00e3 \u0111\u01b0\u1ee3c h\u1ee7y tr\u01b0\u1edbc \u0111\u00f3");
+        }
         if (order.getStatus() == Order.OrderStatus.DELIVERED) {
-            throw new IllegalArgumentException("Cannot cancel delivered order");
+            throw new IllegalArgumentException("Kh\u00f4ng th\u1ec3 h\u1ee7y \u0111\u01a1n h\u00e0ng \u0111\u00e3 giao");
+        }
+        if (order.getStatus() == Order.OrderStatus.SHIPPED) {
+            throw new IllegalArgumentException("Kh\u00f4ng th\u1ec3 h\u1ee7y \u0111\u01a1n h\u00e0ng \u0111ang giao");
         }
 
         order.setStatus(Order.OrderStatus.CANCELLED);
+        order.setCancelledAt(LocalDateTime.now());
+        order.setDeliveryStatus(null);
         Order cancelledOrder = orderRepository.save(order);
         return orderMapper.toDTO(cancelledOrder);
     }

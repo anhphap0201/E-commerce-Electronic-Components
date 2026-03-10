@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/api/momo/ipn").permitAll()
                         .requestMatchers("/api/momo/return").permitAll()
+                        .requestMatchers("/api/webhook/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
                         .anyRequest().permitAll()
