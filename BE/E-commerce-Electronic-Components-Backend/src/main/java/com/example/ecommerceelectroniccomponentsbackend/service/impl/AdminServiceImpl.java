@@ -1,4 +1,4 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.AdminOrderDTO;
 import com.example.ecommerceelectroniccomponentsbackend.dto.AdminStatsDTO;
@@ -13,6 +13,7 @@ import com.example.ecommerceelectroniccomponentsbackend.repository.CategoryRepos
 import com.example.ecommerceelectroniccomponentsbackend.repository.OrderRepository;
 import com.example.ecommerceelectroniccomponentsbackend.repository.ProductRepository;
 import com.example.ecommerceelectroniccomponentsbackend.repository.UserRepository;
+import com.example.ecommerceelectroniccomponentsbackend.service.IAdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class AdminService {
+public class AdminServiceImpl implements IAdminService {
 
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;

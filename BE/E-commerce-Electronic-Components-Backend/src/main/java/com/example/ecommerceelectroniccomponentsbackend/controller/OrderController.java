@@ -2,7 +2,7 @@ package com.example.ecommerceelectroniccomponentsbackend.controller;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.CreateOrderRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.OrderDTO;
-import com.example.ecommerceelectroniccomponentsbackend.service.OrderService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IOrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,7 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OrderController {
 
-    private final OrderService orderService;
+    private final IOrderService orderService;
 
     private Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

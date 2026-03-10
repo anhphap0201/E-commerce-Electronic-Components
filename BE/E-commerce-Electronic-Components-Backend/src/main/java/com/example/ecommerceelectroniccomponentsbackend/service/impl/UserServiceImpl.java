@@ -1,4 +1,4 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.request.ChangePasswordRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.request.RegisterRequest;
@@ -15,6 +15,8 @@ import com.example.ecommerceelectroniccomponentsbackend.model.User;
 import com.example.ecommerceelectroniccomponentsbackend.repository.BlacklistedTokenRepository;
 import com.example.ecommerceelectroniccomponentsbackend.repository.EmailVerificationTokenRepository;
 import com.example.ecommerceelectroniccomponentsbackend.repository.UserRepository;
+import com.example.ecommerceelectroniccomponentsbackend.service.IEmailService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,12 +30,12 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserServiceImpl implements IUserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final BlacklistedTokenRepository blacklistedTokenRepository;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
-    private final EmailService emailService;
+    private final IEmailService emailService;
 
     public UserCreateResponse createUser(UserCreateRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -204,7 +206,8 @@ public class UserService {
                 .build();
     }
 
-    private User getCurrentUser() {
+    @Override
+    public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new IllegalArgumentException("Unauthorized");

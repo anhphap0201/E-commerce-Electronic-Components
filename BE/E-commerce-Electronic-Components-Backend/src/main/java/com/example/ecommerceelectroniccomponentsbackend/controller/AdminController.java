@@ -4,7 +4,7 @@ import com.example.ecommerceelectroniccomponentsbackend.dto.AdminOrderDTO;
 import com.example.ecommerceelectroniccomponentsbackend.dto.AdminStatsDTO;
 import com.example.ecommerceelectroniccomponentsbackend.dto.AdminUserDTO;
 import com.example.ecommerceelectroniccomponentsbackend.dto.DashboardDTO;
-import com.example.ecommerceelectroniccomponentsbackend.service.AdminService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IAdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AdminController {
 
-    private final AdminService adminService;
+    private final IAdminService adminService;
 
     // ==================== STATS ====================
 

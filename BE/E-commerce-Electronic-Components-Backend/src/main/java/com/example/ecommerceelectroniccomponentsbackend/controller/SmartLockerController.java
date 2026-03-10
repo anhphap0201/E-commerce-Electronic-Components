@@ -1,7 +1,7 @@
 package com.example.ecommerceelectroniccomponentsbackend.controller;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.SmartLockerDTO;
-import com.example.ecommerceelectroniccomponentsbackend.service.SmartLockerService;
+import com.example.ecommerceelectroniccomponentsbackend.service.ISmartLockerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SmartLockerController {
 
-    private final SmartLockerService smartLockerService;
+    private final ISmartLockerService smartLockerService;
 
     @GetMapping("/lockers")
     public ResponseEntity<List<SmartLockerDTO.Locker>> getActiveLockers() {

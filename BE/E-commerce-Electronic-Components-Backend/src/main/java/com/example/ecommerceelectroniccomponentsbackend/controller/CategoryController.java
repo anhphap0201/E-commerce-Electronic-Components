@@ -1,7 +1,7 @@
 package com.example.ecommerceelectroniccomponentsbackend.controller;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.CategoryDTO;
-import com.example.ecommerceelectroniccomponentsbackend.service.CategoryService;
+import com.example.ecommerceelectroniccomponentsbackend.service.ICategoryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,7 +18,7 @@ import java.util.Optional;
 public class CategoryController {
 
     @Autowired
-    private CategoryService categoryService;
+    private ICategoryService categoryService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")

@@ -3,7 +3,7 @@ package com.example.ecommerceelectroniccomponentsbackend.controller;
 import com.example.ecommerceelectroniccomponentsbackend.dto.CreateReviewRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.ReviewDTO;
 import com.example.ecommerceelectroniccomponentsbackend.dto.ReviewSummaryDTO;
-import com.example.ecommerceelectroniccomponentsbackend.service.ReviewService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ReviewController {
 
-    private final ReviewService reviewService;
+    private final IReviewService reviewService;
 
     private Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

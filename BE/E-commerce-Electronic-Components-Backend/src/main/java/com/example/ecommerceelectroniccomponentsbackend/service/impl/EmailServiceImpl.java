@@ -1,6 +1,7 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.exception.EmailNotVerifiedException;
+import com.example.ecommerceelectroniccomponentsbackend.service.IEmailService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,9 +13,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class EmailService {
+public class EmailServiceImpl implements IEmailService {
 
-    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
+    private static final Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);
 
     private final JavaMailSender mailSender;
 

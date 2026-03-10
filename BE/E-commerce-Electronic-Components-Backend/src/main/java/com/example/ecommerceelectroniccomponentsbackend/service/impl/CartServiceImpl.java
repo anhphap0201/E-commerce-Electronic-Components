@@ -1,4 +1,4 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.CartDTO;
 import com.example.ecommerceelectroniccomponentsbackend.dto.CartItemDTO;
@@ -9,6 +9,7 @@ import com.example.ecommerceelectroniccomponentsbackend.mapper.CartMapper;
 import com.example.ecommerceelectroniccomponentsbackend.repository.CartItemRepository;
 import com.example.ecommerceelectroniccomponentsbackend.repository.CartRepository;
 import com.example.ecommerceelectroniccomponentsbackend.repository.ProductVariantRepository;
+import com.example.ecommerceelectroniccomponentsbackend.service.ICartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CartService {
+public class CartServiceImpl implements ICartService {
 
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
@@ -107,7 +108,7 @@ public class CartService {
     }
 
     @Transactional
-    public CartDTO removeFromCart(Long userId, Long cartItemId) {
+    public CartDTO removeCartItem(Long userId, Long cartItemId) {
         log.info("Removing item: {} from cart for user: {}", cartItemId, userId);
 
         Cart cart = cartRepository.findByUserIdWithDetails(userId)

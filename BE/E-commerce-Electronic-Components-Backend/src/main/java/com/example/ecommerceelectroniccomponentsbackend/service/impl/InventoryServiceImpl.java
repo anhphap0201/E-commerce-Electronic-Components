@@ -1,4 +1,4 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.InventoryDTO;
 import com.example.ecommerceelectroniccomponentsbackend.entity.Inventory;
@@ -6,6 +6,7 @@ import com.example.ecommerceelectroniccomponentsbackend.entity.Product;
 import com.example.ecommerceelectroniccomponentsbackend.mapper.InventoryMapper;
 import com.example.ecommerceelectroniccomponentsbackend.repository.InventoryRepository;
 import com.example.ecommerceelectroniccomponentsbackend.repository.ProductRepository;
+import com.example.ecommerceelectroniccomponentsbackend.service.IInventoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +15,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class InventoryService {
+public class InventoryServiceImpl implements IInventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final ProductRepository productRepository;

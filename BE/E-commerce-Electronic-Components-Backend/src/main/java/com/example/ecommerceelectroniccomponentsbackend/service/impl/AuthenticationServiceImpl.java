@@ -1,4 +1,4 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.JwtInfo;
 import com.example.ecommerceelectroniccomponentsbackend.dto.TokenPayload;
@@ -12,6 +12,9 @@ import com.example.ecommerceelectroniccomponentsbackend.dto.response.ResetPasswo
 import com.example.ecommerceelectroniccomponentsbackend.dto.response.VerifyEmailResponse;
 import com.example.ecommerceelectroniccomponentsbackend.model.*;
 import com.example.ecommerceelectroniccomponentsbackend.repository.*;
+import com.example.ecommerceelectroniccomponentsbackend.service.IAuthenticationService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IEmailService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IJwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,17 +29,18 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class AuthenticationService {
+public class AuthenticationServiceImpl implements IAuthenticationService {
     private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
+    private final IJwtService jwtService;
     private final BlacklistedTokenRepository blacklistedTokenRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
-    private final EmailService emailService;
+    private final IEmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
 
+    @Override
     public LoginResponse login(LoginRequest request) {
 
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword());
@@ -65,7 +69,7 @@ public class AuthenticationService {
                 .role(user.getRole())
                 .build();
     }
-
+    @Override
     public void logout(String accessToken, String refreshToken) throws ParseException {
         JwtInfo accessInfo = jwtService.parseToken(accessToken);
 
@@ -86,7 +90,7 @@ public class AuthenticationService {
 
         log.info("Logout success");
     }
-
+    @Override
     public ForgotPasswordResponse forgotPassword(ForgotPasswordRequest request) {
         log.info("Forgot password request for email: {}", request.getEmail());
 
@@ -132,7 +136,7 @@ public class AuthenticationService {
                 .email(user.getEmail())
                 .build();
     }
-
+    @Override
     public ResetPasswordResponse resetPassword(ResetPasswordRequest request) {
         log.info("Reset password request with token");
 
@@ -162,7 +166,7 @@ public class AuthenticationService {
                 .email(user.getEmail())
                 .build();
     }
-
+    @Override
     public VerifyEmailResponse verifyEmail(VerifyEmailRequest request) {
         log.info("Email verification request with token");
 
@@ -193,7 +197,7 @@ public class AuthenticationService {
                 .verified(true)
                 .build();
     }
-
+    @Override
     public void sendVerificationEmail(String email) {
         log.info("Sending verification email to: {}", email);
 
@@ -240,7 +244,5 @@ public class AuthenticationService {
             throw new RuntimeException("Không thể gửi email xác thực. Vui lòng thử lại sau.");
         }
     }
-
-
 
 }

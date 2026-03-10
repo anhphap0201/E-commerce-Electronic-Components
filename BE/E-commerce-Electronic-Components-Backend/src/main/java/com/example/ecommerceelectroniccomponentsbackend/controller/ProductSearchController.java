@@ -2,8 +2,8 @@ package com.example.ecommerceelectroniccomponentsbackend.controller;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.ProductFilterRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.ProductWithVariantsDTO;
-import com.example.ecommerceelectroniccomponentsbackend.service.ProductFilterService;
-import com.example.ecommerceelectroniccomponentsbackend.service.ProductSearchService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IProductFilterService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IProductSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,8 +22,8 @@ import java.util.List;
 @Tag(name = "Product Search", description = "API tìm kiếm sản phẩm")
 public class ProductSearchController {
 
-    private final ProductSearchService productSearchService;
-    private final ProductFilterService productFilterService;
+    private final IProductSearchService productSearchService;
+    private final IProductFilterService productFilterService;
 
     @GetMapping("/by-category-name")
     @Operation(summary = "Tìm kiếm sản phẩm theo tên danh mục",

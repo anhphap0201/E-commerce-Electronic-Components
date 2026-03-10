@@ -1,4 +1,4 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.CreateOrderRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.OrderDTO;
@@ -12,6 +12,8 @@ import com.example.ecommerceelectroniccomponentsbackend.mapper.OrderMapper;
 import com.example.ecommerceelectroniccomponentsbackend.repository.CartRepository;
 import com.example.ecommerceelectroniccomponentsbackend.repository.OrderRepository;
 import com.example.ecommerceelectroniccomponentsbackend.repository.UserRepository;
+import com.example.ecommerceelectroniccomponentsbackend.service.IOrderService;
+import com.example.ecommerceelectroniccomponentsbackend.service.ISmartLockerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,13 +32,13 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class OrderService {
+public class OrderServiceImpl implements IOrderService {
 
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
     private final OrderMapper orderMapper;
-    private final SmartLockerService smartLockerService;
+    private final ISmartLockerService smartLockerService;
 
     @Transactional
     public OrderDTO createOrderFromCart(Long userId, CreateOrderRequest request) {

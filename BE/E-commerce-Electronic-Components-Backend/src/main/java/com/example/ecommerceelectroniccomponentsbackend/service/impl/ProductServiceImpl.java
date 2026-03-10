@@ -1,9 +1,10 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.ProductDTO;
 import com.example.ecommerceelectroniccomponentsbackend.entity.Product;
 import com.example.ecommerceelectroniccomponentsbackend.mapper.ProductMapper;
 import com.example.ecommerceelectroniccomponentsbackend.repository.ProductRepository;
+import com.example.ecommerceelectroniccomponentsbackend.service.IProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +16,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class ProductService {
+public class ProductServiceImpl implements IProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;

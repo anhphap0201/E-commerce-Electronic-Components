@@ -1,4 +1,4 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.PaymentDTO;
 import com.example.ecommerceelectroniccomponentsbackend.dto.PaymentRequestDTO;
@@ -6,6 +6,7 @@ import com.example.ecommerceelectroniccomponentsbackend.entity.Order;
 import com.example.ecommerceelectroniccomponentsbackend.entity.Payment;
 import com.example.ecommerceelectroniccomponentsbackend.repository.OrderRepository;
 import com.example.ecommerceelectroniccomponentsbackend.repository.PaymentRepository;
+import com.example.ecommerceelectroniccomponentsbackend.service.IPaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentService {
+public class PaymentServiceImpl implements IPaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;

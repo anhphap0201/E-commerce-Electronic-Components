@@ -1,10 +1,11 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.JwtInfo;
 import com.example.ecommerceelectroniccomponentsbackend.dto.TokenPayload;
 import com.example.ecommerceelectroniccomponentsbackend.model.BlacklistedToken;
 import com.example.ecommerceelectroniccomponentsbackend.model.User;
 import com.example.ecommerceelectroniccomponentsbackend.repository.BlacklistedTokenRepository;
+import com.example.ecommerceelectroniccomponentsbackend.service.IJwtService;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -22,7 +23,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class JwtService {
+public class JwtServiceImpl implements IJwtService {
 
     private final BlacklistedTokenRepository blacklistedTokenRepository;
     @Value("${app.jwt.secret-key}")

@@ -1,9 +1,11 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.ProductFilterRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.ProductWithVariantsDTO;
 import com.example.ecommerceelectroniccomponentsbackend.entity.Product;
 import com.example.ecommerceelectroniccomponentsbackend.repository.ProductRepository;
+import com.example.ecommerceelectroniccomponentsbackend.service.IProductFilterService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IProductSearchService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
@@ -24,11 +26,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ProductFilterService {
+public class ProductFilterServiceImpl implements IProductFilterService {
 
     private final ProductRepository productRepository;
     private final EntityManager entityManager;
-    private final ProductSearchService productSearchService;
+    private final IProductSearchService productSearchService;
 
     @Transactional(readOnly = true)
     public Page<ProductWithVariantsDTO> filterProducts(ProductFilterRequest filter) {

@@ -2,7 +2,7 @@ package com.example.ecommerceelectroniccomponentsbackend.controller;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.PaymentDTO;
 import com.example.ecommerceelectroniccomponentsbackend.dto.PaymentRequestDTO;
-import com.example.ecommerceelectroniccomponentsbackend.service.PaymentService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IPaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PaymentController {
 
-    private final PaymentService paymentService;
+    private final IPaymentService paymentService;
 
     private Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

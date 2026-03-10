@@ -1,4 +1,4 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.CategoryDTO;
 import com.example.ecommerceelectroniccomponentsbackend.dto.ProductVariantDTO;
@@ -7,6 +7,7 @@ import com.example.ecommerceelectroniccomponentsbackend.entity.Category;
 import com.example.ecommerceelectroniccomponentsbackend.entity.Product;
 import com.example.ecommerceelectroniccomponentsbackend.entity.ProductVariant;
 import com.example.ecommerceelectroniccomponentsbackend.repository.ProductRepository;
+import com.example.ecommerceelectroniccomponentsbackend.service.IProductSearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ProductSearchService {
+public class ProductSearchServiceImpl implements IProductSearchService {
 
     private final ProductRepository productRepository;
 

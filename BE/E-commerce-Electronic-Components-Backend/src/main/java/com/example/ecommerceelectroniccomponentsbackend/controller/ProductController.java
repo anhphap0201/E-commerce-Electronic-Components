@@ -1,7 +1,7 @@
 package com.example.ecommerceelectroniccomponentsbackend.controller;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.ProductDTO;
-import com.example.ecommerceelectroniccomponentsbackend.service.ProductService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/products")
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class ProductController {
-    private final ProductService productService;
+    private final IProductService productService;
 
     @GetMapping
     public ResponseEntity<List<ProductDTO>> getAllProducts() {

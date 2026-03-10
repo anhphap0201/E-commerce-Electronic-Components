@@ -2,7 +2,7 @@ package com.example.ecommerceelectroniccomponentsbackend.controller;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.ProductVariantAdminDTO;
 import com.example.ecommerceelectroniccomponentsbackend.entity.ProductVariant;
-import com.example.ecommerceelectroniccomponentsbackend.service.ProductVariantService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IProductVariantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +14,7 @@ import java.util.List;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequestMapping("/product-variants")
 public class ProductVariantController {
-    private final ProductVariantService productVariantService;
+    private final IProductVariantService productVariantService;
 
     // GET API → Fetch all variants for admin
     @GetMapping

@@ -1,10 +1,11 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.ProductVariantAdminDTO;
 import com.example.ecommerceelectroniccomponentsbackend.entity.Category;
 import com.example.ecommerceelectroniccomponentsbackend.entity.Product;
 import com.example.ecommerceelectroniccomponentsbackend.entity.ProductVariant;
 import com.example.ecommerceelectroniccomponentsbackend.repository.ProductVariantRepository;
+import com.example.ecommerceelectroniccomponentsbackend.service.IProductVariantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ProductVariantService {
+public class ProductVariantServiceImpl implements IProductVariantService {
     private final ProductVariantRepository productVariantRepository;
 
     public List<ProductVariantAdminDTO> getAllVariantsForAdmin() {

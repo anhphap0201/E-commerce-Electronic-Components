@@ -1,9 +1,10 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.CategoryDTO;
 import com.example.ecommerceelectroniccomponentsbackend.entity.Category;
 import com.example.ecommerceelectroniccomponentsbackend.mapper.CategoryMapper;
 import com.example.ecommerceelectroniccomponentsbackend.repository.CategoryRepository;
+import com.example.ecommerceelectroniccomponentsbackend.service.ICategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +13,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class CategoryService {
+public class CategoryServiceImpl implements ICategoryService {
 
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;

@@ -1,7 +1,7 @@
 package com.example.ecommerceelectroniccomponentsbackend.controller;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.InventoryDTO;
-import com.example.ecommerceelectroniccomponentsbackend.service.InventoryService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IInventoryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,7 +18,7 @@ import java.util.Optional;
 public class InventoryController {
 
     @Autowired
-    private InventoryService inventoryService;
+    private IInventoryService inventoryService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")

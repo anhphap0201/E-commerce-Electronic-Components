@@ -1,10 +1,11 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.config.MomoConfig;
 import com.example.ecommerceelectroniccomponentsbackend.entity.Order;
 import com.example.ecommerceelectroniccomponentsbackend.entity.Payment;
 import com.example.ecommerceelectroniccomponentsbackend.repository.OrderRepository;
 import com.example.ecommerceelectroniccomponentsbackend.repository.PaymentRepository;
+import com.example.ecommerceelectroniccomponentsbackend.service.IMomoService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MomoService {
+public class MomoServiceImpl implements IMomoService {
 
     private final MomoConfig momoConfig;
     private final OrderRepository orderRepository;

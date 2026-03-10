@@ -1,4 +1,4 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.CreateReviewRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.ReviewDTO;
@@ -9,6 +9,7 @@ import com.example.ecommerceelectroniccomponentsbackend.model.User;
 import com.example.ecommerceelectroniccomponentsbackend.repository.ProductRepository;
 import com.example.ecommerceelectroniccomponentsbackend.repository.ReviewRepository;
 import com.example.ecommerceelectroniccomponentsbackend.repository.UserRepository;
+import com.example.ecommerceelectroniccomponentsbackend.service.IReviewService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,7 +23,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ReviewService {
+public class ReviewServiceImpl implements IReviewService {
 
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;

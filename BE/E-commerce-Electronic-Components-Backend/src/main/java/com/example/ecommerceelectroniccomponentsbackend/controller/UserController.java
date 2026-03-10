@@ -4,7 +4,7 @@ import com.example.ecommerceelectroniccomponentsbackend.dto.request.UserCreateRe
 import com.example.ecommerceelectroniccomponentsbackend.dto.request.UserProfileRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.response.UserCreateResponse;
 import com.example.ecommerceelectroniccomponentsbackend.dto.response.UserProfileResponse;
-import com.example.ecommerceelectroniccomponentsbackend.service.UserService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 public class UserController {
-    private final UserService userService;
+    private final IUserService userService;
 
 
     @PostMapping("/users")

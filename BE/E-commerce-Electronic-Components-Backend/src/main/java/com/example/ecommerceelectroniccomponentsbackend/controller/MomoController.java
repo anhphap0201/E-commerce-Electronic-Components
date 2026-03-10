@@ -4,8 +4,8 @@ import com.example.ecommerceelectroniccomponentsbackend.dto.CreateOrderRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.OrderDTO;
 import com.example.ecommerceelectroniccomponentsbackend.entity.Order;
 import com.example.ecommerceelectroniccomponentsbackend.repository.OrderRepository;
-import com.example.ecommerceelectroniccomponentsbackend.service.MomoService;
-import com.example.ecommerceelectroniccomponentsbackend.service.OrderService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IMomoService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IOrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +23,8 @@ import java.util.Map;
 @Slf4j
 public class MomoController {
 
-    private final MomoService momoService;
-    private final OrderService orderService;
+    private final IMomoService momoService;
+    private final IOrderService orderService;
     private final OrderRepository orderRepository;
 
     private Long getCurrentUserId() {

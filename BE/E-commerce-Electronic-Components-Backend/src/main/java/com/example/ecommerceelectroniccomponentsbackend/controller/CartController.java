@@ -2,7 +2,7 @@ package com.example.ecommerceelectroniccomponentsbackend.controller;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.CartDTO;
 import com.example.ecommerceelectroniccomponentsbackend.dto.CartItemDTO;
-import com.example.ecommerceelectroniccomponentsbackend.service.CartService;
+import com.example.ecommerceelectroniccomponentsbackend.service.ICartService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CartController {
 
-    private final CartService cartService;
+    private final ICartService cartService;
 
     private Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -69,7 +69,7 @@ public class CartController {
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        CartDTO updatedCart = cartService.removeFromCart(userId, cartItemId);
+        CartDTO updatedCart = cartService.removeCartItem(userId, cartItemId);
         return ResponseEntity.ok(updatedCart);
     }
 

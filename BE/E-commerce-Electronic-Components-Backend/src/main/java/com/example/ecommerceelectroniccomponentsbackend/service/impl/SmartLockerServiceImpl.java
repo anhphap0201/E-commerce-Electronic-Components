@@ -1,6 +1,7 @@
-package com.example.ecommerceelectroniccomponentsbackend.service;
+package com.example.ecommerceelectroniccomponentsbackend.service.impl;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.SmartLockerDTO;
+import com.example.ecommerceelectroniccomponentsbackend.service.ISmartLockerService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class SmartLockerService {
+public class SmartLockerServiceImpl implements ISmartLockerService {
 
     private final RestClient smartLockerRestClient;
 

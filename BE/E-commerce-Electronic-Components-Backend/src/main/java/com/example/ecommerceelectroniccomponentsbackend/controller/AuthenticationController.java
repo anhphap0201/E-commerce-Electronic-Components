@@ -2,8 +2,8 @@ package com.example.ecommerceelectroniccomponentsbackend.controller;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.request.*;
 import com.example.ecommerceelectroniccomponentsbackend.dto.response.*;
-import com.example.ecommerceelectroniccomponentsbackend.service.AuthenticationService;
-import com.example.ecommerceelectroniccomponentsbackend.service.UserService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IAuthenticationService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,8 +33,8 @@ import java.util.Map;
 @Slf4j
 @Tag(name = "Authentication", description = "Authentication and Authorization APIs")
 public class AuthenticationController {
-    private final AuthenticationService authenticationService;
-    private final UserService userService;
+    private final IAuthenticationService authenticationService;
+    private final IUserService userService;
 
     @PostMapping("/auth/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {

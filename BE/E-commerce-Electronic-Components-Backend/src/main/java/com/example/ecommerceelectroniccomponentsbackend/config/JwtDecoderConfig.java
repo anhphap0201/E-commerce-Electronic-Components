@@ -1,6 +1,6 @@
 package com.example.ecommerceelectroniccomponentsbackend.config;
 
-import com.example.ecommerceelectroniccomponentsbackend.service.JwtService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IJwtService;
 import com.nimbusds.jose.JOSEException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Slf4j
 public class JwtDecoderConfig implements JwtDecoder {
-    private final JwtService jwtService;
+    private final IJwtService jwtService;
     private NimbusJwtDecoder nimbusJwtDecoder = null;
     @Value("${app.jwt.secret-key}")
     private String secretKey;
