@@ -1,6 +1,7 @@
 package com.example.ecommerceelectroniccomponentsbackend.service;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.CreateOrderRequest;
+import com.example.ecommerceelectroniccomponentsbackend.dto.DeliveryWebhookRequest;
 import com.example.ecommerceelectroniccomponentsbackend.dto.OrderDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,5 +21,7 @@ public interface IOrderService {
     OrderDTO updateOrderStatus(Long orderId, Long userId, String status);
 
     OrderDTO cancelOrder(Long orderId, Long userId);
+
+    Map<String, Object> handleDeliveryWebhook(DeliveryWebhookRequest request);
 }
 

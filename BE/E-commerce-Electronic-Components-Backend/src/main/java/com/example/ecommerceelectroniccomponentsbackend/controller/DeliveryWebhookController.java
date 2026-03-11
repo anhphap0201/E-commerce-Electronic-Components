@@ -1,7 +1,7 @@
 package com.example.ecommerceelectroniccomponentsbackend.controller;
 
 import com.example.ecommerceelectroniccomponentsbackend.dto.DeliveryWebhookRequest;
-import com.example.ecommerceelectroniccomponentsbackend.service.OrderService;
+import com.example.ecommerceelectroniccomponentsbackend.service.IOrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +15,10 @@ import java.util.Map;
 @Slf4j
 public class DeliveryWebhookController {
 
-    private final OrderService orderService;
+    private final IOrderService orderService;
 
     /**
-     * Webhook endpoint for delivery service to push status updates and OTP.
+     * Webhook endpoint for a delivery service to push status updates and OTP.
      * POST /api/webhook/delivery
      *
      * Request body:
