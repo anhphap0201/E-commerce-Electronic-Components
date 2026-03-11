@@ -20,6 +20,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findByOrderNumber(String orderNumber);
        Optional<Order> findByLockerOrderId(String lockerOrderId);
 
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.orderItems oi LEFT JOIN FETCH oi.productVariant WHERE o.id = :orderId AND o.userId = :userId")
+    Optional<Order> findByIdAndUserIdWithItems(@Param("orderId") Long orderId, @Param("userId") Long userId);
+
     // Admin queries
     long countByStatus(Order.OrderStatus status);
     long countByUserId(long userId);

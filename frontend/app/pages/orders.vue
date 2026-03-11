@@ -30,6 +30,34 @@
         </div>
       </div>
 
+      <!-- Status Tabs -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 p-1.5 flex gap-1 overflow-x-auto">
+        <button
+          v-for="tab in statusTabs"
+          :key="tab.key"
+          @click="activeTab = tab.key"
+          :class="[
+            'px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200',
+            activeTab === tab.key
+              ? 'bg-[#09f] text-white shadow-sm'
+              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+          ]"
+        >
+          {{ tab.label }}
+          <span
+            v-if="getTabCount(tab.key) > 0"
+            :class="[
+              'ml-1.5 px-2 py-0.5 rounded-full text-xs font-bold',
+              activeTab === tab.key
+                ? 'bg-white/25 text-white'
+                : 'bg-gray-200 text-gray-600'
+            ]"
+          >
+            {{ getTabCount(tab.key) }}
+          </span>
+        </button>
+      </div>
+
       <div v-if="loading" class="bg-white rounded-2xl p-10 text-center">
         <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-[#09f] border-t-transparent mb-3"></div>
         <p class="text-gray-600">Đang tải danh sách đơn hàng...</p>
@@ -39,9 +67,9 @@
         {{ errorMessage }}
       </div>
 
-      <div v-if="!loading && orders.length > 0" class="space-y-4">
+      <div v-if="!loading && filteredOrders.length > 0" class="space-y-4">
         <div
-          v-for="order in orders"
+          v-for="order in filteredOrders"
           :key="order.id"
           class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
         >
@@ -142,6 +170,16 @@
         </div>
       </div>
 
+      <div v-else-if="!loading && orders.length > 0 && filteredOrders.length === 0" class="bg-white rounded-2xl p-12 text-center">
+        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">Không có đơn hàng nào ở trạng thái này</h2>
+        <p class="text-gray-600 mb-6">Chọn tab khác để xem đơn hàng ở trạng thái khác.</p>
+      </div>
+
       <div v-else-if="!loading" class="bg-white rounded-2xl p-12 text-center">
         <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -162,7 +200,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 interface OrderItem {
   id: number
@@ -214,6 +252,51 @@ const pageSize = 10
 
 const expandedOrderIds = ref<Set<number>>(new Set())
 const cancellingOrderIds = ref<Set<number>>(new Set())
+
+type TabKey = 'ALL' | 'PENDING' | 'SHIPPING' | 'DELIVERED' | 'COMPLETED' | 'CANCELLED'
+
+const activeTab = ref<TabKey>('ALL')
+
+const statusTabs: { key: TabKey; label: string }[] = [
+  { key: 'ALL', label: 'Tất cả' },
+  { key: 'PENDING', label: 'Chờ xác nhận' },
+  { key: 'SHIPPING', label: 'Đang giao' },
+  { key: 'DELIVERED', label: 'Đã giao' },
+  { key: 'COMPLETED', label: 'Hoàn thành' },
+  { key: 'CANCELLED', label: 'Đã hủy' },
+]
+
+const getOrderTabKey = (order: Order): TabKey => {
+  const status = normalizeStatus(getDisplayStatus(order))
+  switch (status) {
+    case 'PENDING':
+    case 'CONFIRMED':
+      return 'PENDING'
+    case 'SHIPPED':
+    case 'IN_TRANSIT':
+      return 'SHIPPING'
+    case 'DELIVERED':
+    case 'DELIVERED_TO_LOCKER':
+    case 'PICKED_UP':
+      return 'DELIVERED'
+    case 'COMPLETED':
+      return 'COMPLETED'
+    case 'CANCELLED':
+      return 'CANCELLED'
+    default:
+      return 'PENDING'
+  }
+}
+
+const filteredOrders = computed(() => {
+  if (activeTab.value === 'ALL') return orders.value
+  return orders.value.filter(order => getOrderTabKey(order) === activeTab.value)
+})
+
+const getTabCount = (tab: TabKey): number => {
+  if (tab === 'ALL') return orders.value.length
+  return orders.value.filter(order => getOrderTabKey(order) === tab).length
+}
 
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat('vi-VN', {
@@ -293,35 +376,6 @@ const getDisplayStatus = (order: Order) => {
   return order.deliveryStatus || order.status || 'PENDING'
 }
 
-const getTrackingReference = (order: Order) => {
-  return order.lockerOrderId || order.orderNumber || String(order.id)
-}
-
-const enrichDeliveryStatus = async (orderList: Order[]) => {
-  return Promise.all(
-    orderList.map(async (order) => {
-      try {
-        const orderRef = encodeURIComponent(getTrackingReference(order))
-        const tracking: any = await $fetch(`${API_BASE_URL}/api/orders/delivery-status/${orderRef}`, {
-          headers: {
-            ...(getAuthHeader() as Record<string, string>)
-          }
-        })
-
-        return {
-          ...order,
-          deliveryStatus: tracking?.deliveryStatus || tracking?.status || order.deliveryStatus,
-          senderOTP: tracking?.senderOTP || order.senderOTP,
-          recipientOTP: tracking?.recipientOTP || order.recipientOTP
-        }
-      } catch (error) {
-        console.warn(`Delivery tracking unavailable for order ${order.id}`, error)
-        return order
-      }
-    })
-  )
-}
-
 const toggleExpanded = (orderId: number) => {
   if (expandedOrderIds.value.has(orderId)) {
     expandedOrderIds.value.delete(orderId)
@@ -345,8 +399,7 @@ const fetchOrders = async () => {
       }
     })
 
-    const baseOrders = response?.content || []
-    orders.value = await enrichDeliveryStatus(baseOrders)
+    orders.value = response?.content || []
     totalPages.value = response?.totalPages || 0
   } catch (error: any) {
     console.error('Error fetching orders:', error)
@@ -382,7 +435,8 @@ const cancelOrder = async (orderId: number) => {
     await fetchOrders()
   } catch (error: any) {
     console.error('Error cancelling order:', error)
-    showError('Không thể hủy đơn hàng này')
+    const message = error?.data?.message || error?.data?.error || 'Không thể hủy đơn hàng này'
+    showError(message)
   } finally {
     cancellingOrderIds.value.delete(orderId)
   }

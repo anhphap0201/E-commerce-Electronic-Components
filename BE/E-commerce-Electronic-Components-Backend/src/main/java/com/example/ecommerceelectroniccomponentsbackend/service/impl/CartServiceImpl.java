@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
@@ -63,18 +62,14 @@ public class CartServiceImpl implements ICartService {
             cartItemRepository.save(item);
             log.info("Updated quantity for variant: {}", cartItemDTO.getProductVariantId());
         } else {
-            BigDecimal itemPrice = cartItemDTO.getPrice() != null ?
-                    cartItemDTO.getPrice() : variant.getPrice();
-
             CartItem newItem = CartItem.builder()
                     .cart(cart)
                     .productVariant(variant)
                     .quantity(cartItemDTO.getQuantity())
-                    .price(itemPrice)
+                    .price(variant.getPrice())
                     .build();
             cart.getCartItems().add(cartItemRepository.save(newItem));
-            log.info("Added new item to cart for variant: {} with price: {}",
-                    cartItemDTO.getProductVariantId(), itemPrice);
+            log.info("Added new item to cart for variant: {}", cartItemDTO.getProductVariantId());
         }
 
         return cartMapper.toDTO(cart);
