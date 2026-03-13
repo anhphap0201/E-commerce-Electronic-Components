@@ -173,6 +173,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useConfirm } from '~/composables/useConfirm'
+import { useNotification } from '~/composables/useNotification'
+import { useAuth } from '~/composables/useAuth'
 
 const API_BASE_URL = 'http://localhost:8080/api'
 
@@ -211,7 +214,8 @@ const fetchCategories = async () => {
     categories.value = data as any[]
   } catch (error) {
     console.error('Error fetching categories:', error)
-    alert('Lỗi khi tải danh sách danh mục')
+    const { error: showError } = useNotification()
+    showError('Lỗi khi tải danh sách danh mục')
   }
 }
 
@@ -248,7 +252,8 @@ const closeModal = () => {
 const saveCategory = async () => {
   try {
     if (!formData.value.name || !formData.value.slug) {
-      alert('Vui lòng điền đầy đủ thông tin bắt buộc')
+      const { error: showError } = useNotification()
+      showError('Vui lòng điền đầy đủ thông tin bắt buộc')
       return
     }
 
@@ -273,58 +278,62 @@ const saveCategory = async () => {
         formData.value.imageUrl = uploadResponse.url
       } catch (uploadError: any) {
         console.error('Error uploading image:', uploadError)
-        alert('Lỗi khi tải ảnh lên: ' + (uploadError.message || 'Unknown error'))
+        const { error: showError } = useNotification()
+        showError('Lỗi khi tải ảnh lên: ' + (uploadError.message || 'Unknown error'))
         uploadingImage.value = false
         return
       }
       uploadingImage.value = false
     }
 
+    const auth = useAuth()
+    const { success: showSuccess, error: showError } = useNotification()
+
     if (isEditMode.value && currentCategory.value) {
       // Update
       await $fetch(`${API_BASE_URL}/categories/${currentCategory.value.id}`, {
         method: 'PUT',
         body: formData.value,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
+        headers: auth.getAuthHeader()
       })
-      alert('Cập nhật danh mục thành công!')
+      showSuccess('Cập nhật danh mục thành công!')
     } else {
       // Create
       await $fetch(`${API_BASE_URL}/categories`, {
         method: 'POST',
         body: formData.value,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
+        headers: auth.getAuthHeader()
       })
-      alert('Thêm danh mục thành công!')
+      showSuccess('Thêm danh mục thành công!')
     }
 
     closeModal()
     await fetchCategories()
   } catch (error: any) {
     console.error('Error saving category:', error)
-    alert('Lỗi: ' + (error.data || error.message || 'Không thể lưu danh mục'))
+    const { error: showError } = useNotification()
+    showError('Lỗi: ' + (error.data || error.message || 'Không thể lưu danh mục'))
   }
 }
 
 const confirmDelete = async (category: any) => {
-  if (!confirm(`Bạn có chắc muốn xóa danh mục "${category.name}"?`)) return
+  const { confirm } = useConfirm()
+  const auth = useAuth()
+  const { success: showSuccess, error: showError } = useNotification()
+
+  const ok = await confirm(`Bạn có chắc muốn xóa danh mục "${category.name}"?`, 'Xác nhận xóa')
+  if (!ok) return
 
   try {
     await $fetch(`${API_BASE_URL}/categories/${category.id}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
+      headers: auth.getAuthHeader()
     })
-    alert('Xóa danh mục thành công!')
+    showSuccess('Xóa danh mục thành công!')
     await fetchCategories()
   } catch (error: any) {
     console.error('Error deleting category:', error)
-    alert('Lỗi: ' + (error.data || error.message || 'Không thể xóa danh mục'))
+    showError('Lỗi: ' + (error.data || error.message || 'Không thể xóa danh mục'))
   }
 }
 

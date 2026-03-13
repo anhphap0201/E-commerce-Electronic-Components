@@ -62,13 +62,30 @@ export const useAuth = () => {
   }
 
   const logout = () => {
-    user.value = null
-    token.value = null
-    
-    if (import.meta.client) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
+    // Try to notify backend to invalidate tokens (best-effort)
+    const doLogout = async () => {
+      try {
+        if (token.value && import.meta.client) {
+          await $fetch('http://localhost:8080/auth/logout', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token.value}` },
+            credentials: 'include'
+          })
+        }
+      } catch (e) {
+        console.warn('Backend logout failed (ignored):', e)
+      } finally {
+        user.value = null
+        token.value = null
+        if (import.meta.client) {
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+        }
+      }
     }
+
+    // Fire-and-forget to keep callers simple (returns void)
+    void doLogout()
   }
 
   const getAuthHeader = () => {

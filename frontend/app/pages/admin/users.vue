@@ -224,6 +224,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useNotification } from '~/composables/useNotification'
+import { useConfirm } from '~/composables/useConfirm'
 
 definePageMeta({
   middleware: 'admin'
@@ -282,7 +283,9 @@ const viewUser = (u: any) => {
 
 const toggleActive = async (u: any) => {
   const action = u.isActive ? 'khóa' : 'mở khóa'
-  if (!confirm(`Bạn có chắc muốn ${action} tài khoản "${u.email}"?`)) return
+  const { confirm } = useConfirm()
+  const ok = await confirm(`Bạn có chắc muốn ${action} tài khoản "${u.email}"?`, 'Xác nhận')
+  if (!ok) return
 
   try {
     await $fetch(`${API}/api/admin/users/${u.id}/toggle-active`, {

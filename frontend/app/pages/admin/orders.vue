@@ -325,6 +325,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useNotification } from '~/composables/useNotification'
+import { useConfirm } from '~/composables/useConfirm'
 
 definePageMeta({
   middleware: 'admin'
@@ -427,7 +428,9 @@ const updateStatus = async (newStatus: string) => {
 }
 
 const confirmDeleteOrder = async (order: any) => {
-  if (!confirm(`Bạn có chắc muốn xóa đơn hàng ${order.orderNumber || '#' + order.id}?`)) return
+  const { confirm } = useConfirm()
+  const ok = await confirm(`Bạn có chắc muốn xóa đơn hàng ${order.orderNumber || '#' + order.id}?`, 'Xác nhận xóa')
+  if (!ok) return
   try {
     await $fetch(`${API}/api/admin/orders/${order.id}`, {
       method: 'DELETE',

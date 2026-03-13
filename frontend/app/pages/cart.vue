@@ -218,6 +218,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useCart } from '~/composables/useCart'
+import { useConfirm } from '~/composables/useConfirm'
+import { useNotification } from '~/composables/useNotification'
 
 definePageMeta({
   middleware: ['auth']
@@ -282,6 +284,9 @@ const total = computed(() => {
   return subtotal.value + shippingFee.value
 })
 
+const { confirm } = useConfirm()
+const { error: showError, success: showSuccess } = useNotification()
+
 // Methods
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat('vi-VN', {
@@ -320,11 +325,11 @@ const updateQuantity = async (cartItemId: number, quantity: number) => {
 }
 
 const removeItem = async (cartItemId: number) => {
-  if (confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
-    const success = await removeFromCart(cartItemId)
-    if (success) {
-      selectedItems.value.delete(cartItemId)
-    }
+  const ok = await confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?', 'Xác nhận xóa')
+  if (!ok) return
+  const success = await removeFromCart(cartItemId)
+  if (success) {
+    selectedItems.value.delete(cartItemId)
   }
 }
 
@@ -348,7 +353,7 @@ const toggleItemSelection = (cartItemId: number) => {
 
 const goToCheckout = () => {
   if (selectedItemsCount.value === 0) {
-    alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán')
+    showError('Vui lòng chọn ít nhất một sản phẩm để thanh toán')
     return
   }
   // Store selected items for checkout
@@ -358,10 +363,10 @@ const goToCheckout = () => {
 }
 
 const clearAllCart = async () => {
-  if (confirm('Bạn có chắc muốn xóa toàn bộ giỏ hàng?')) {
-    await clearCart()
-    selectedItems.value.clear()
-  }
+  const ok = await confirm('Bạn có chắc muốn xóa toàn bộ giỏ hàng?', 'Xác nhận xóa')
+  if (!ok) return
+  await clearCart()
+  selectedItems.value.clear()
 }
 </script>
 

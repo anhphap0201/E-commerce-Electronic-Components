@@ -2,6 +2,7 @@
   <div class="flex flex-col min-h-screen">
     <!-- Notification Container -->
     <NotificationContainer />
+    <ConfirmModal />
     
     <!-- Header -->
     <header class="border-b border-gray-200 sticky top-0 z-50 backdrop-blur-sm bg-white/95">

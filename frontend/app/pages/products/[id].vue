@@ -498,6 +498,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCart } from '~/composables/useCart'
+import { useConfirm } from '~/composables/useConfirm'
 
 const route = useRoute()
 const productId = computed(() => route.params.id as string)
@@ -885,12 +886,13 @@ const loadMockProduct = () => {
   }
 }
 
+const { confirm } = useConfirm()
 const toggleWishlist = () => {
   isInWishlist.value = !isInWishlist.value
   if (isInWishlist.value) {
-    alert('Đã thêm vào danh sách yêu thích')
+    showSuccess('Đã thêm vào danh sách yêu thích')
   } else {
-    alert('Đã xóa khỏi danh sách yêu thích')
+    showSuccess('Đã xóa khỏi danh sách yêu thích')
   }
 }
 
@@ -924,13 +926,13 @@ const decreaseQuantity = () => {
 const addToCart = async () => {
   // Ensure variant is selected if there are multiple
   if (product.value.variants?.length > 1 && !selectedVariant.value) {
-    alert('Vui lòng chọn phân loại sản phẩm')
+    showError('Vui lòng chọn phân loại sản phẩm')
     return
   }
   
   // Check if stock is available
   if (currentStock.value < quantity.value) {
-    alert('Số lượng trong kho không đủ')
+    showError('Số lượng trong kho không đủ')
     return
   }
   
@@ -938,7 +940,7 @@ const addToCart = async () => {
   const variantId = variant?.id
   
   if (!variantId) {
-    alert('Sản phẩm không hợp lệ')
+    showError('Sản phẩm không hợp lệ')
     return
   }
   
@@ -956,13 +958,13 @@ const addToCart = async () => {
 const buyNow = async () => {
   // Ensure variant is selected if there are multiple
   if (product.value.variants?.length > 1 && !selectedVariant.value) {
-    alert('Vui lòng chọn phân loại sản phẩm')
+    showError('Vui lòng chọn phân loại sản phẩm')
     return
   }
   
   // Check if stock is available
   if (currentStock.value < quantity.value) {
-    alert('Số lượng trong kho không đủ')
+    showError('Số lượng trong kho không đủ')
     return
   }
   
@@ -970,7 +972,7 @@ const buyNow = async () => {
   const variantId = variant?.id
   
   if (!variantId) {
-    alert('Sản phẩm không hợp lệ')
+    showError('Sản phẩm không hợp lệ')
     return
   }
   
@@ -1088,7 +1090,8 @@ const editReview = (review: any) => {
 }
 
 const deleteReview = async (reviewId: number) => {
-  if (!confirm('Bạn có chắc muốn xóa đánh giá này?')) return
+  const ok = await confirm('Bạn có chắc muốn xóa đánh giá này?', 'Xác nhận xóa')
+  if (!ok) return
   try {
     await $fetch(`${API_BASE_URL}/api/reviews/${reviewId}`, {
       method: 'DELETE',

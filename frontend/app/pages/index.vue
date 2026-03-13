@@ -116,10 +116,10 @@
 
               <!-- Actions -->
               <div class="flex gap-2">
-                <button @click.prevent="buyNow(product.id)" class="flex-1 bg-[#09f] text-white py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-[#0077cc] hover:shadow-lg active:scale-95">
+                <button @click.prevent="buyNow($event, product)" class="flex-1 bg-[#09f] text-white py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-[#0077cc] hover:shadow-lg active:scale-95">
                   Mua ngay
                 </button>
-                <button @click.prevent="addToCart(product.id)" class="w-10 h-10 border-2 border-gray-200 rounded-xl flex items-center justify-center transition-all duration-300 hover:border-[#09f] hover:text-[#09f] hover:scale-105 active:scale-95">
+                <button @click.prevent="addToCart($event, product)" class="w-10 h-10 border-2 border-gray-200 rounded-xl flex items-center justify-center transition-all duration-300 hover:border-[#09f] hover:text-[#09f] hover:scale-105 active:scale-95">
                   +
                 </button>
               </div>
@@ -133,6 +133,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useAuth } from '../composables/useAuth'
+import { useNotification } from '../composables/useNotification'
 
 const banners = [
   {
@@ -232,13 +234,77 @@ const handleCategoryClick = (categoryId: number) => {
   navigateTo(`/search?category=${categoryId}`)
 }
 
-const buyNow = (productId: number) => {
-  // Implement buy now functionality
-  alert(`Mua ngay sản phẩm ${productId}`)
+const auth = useAuth()
+const notify = useNotification()
+
+const addToCart = async (event: Event, productOrVariant: any) => {
+  event.stopPropagation()
+  if (!auth.isAuthenticated.value) {
+    notify.info('Vui lòng đăng nhập', 'Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng')
+    return navigateTo('/auth/auth')
+  }
+
+  try {
+    // If this is a product with variants (from search API), pick a variant
+    let variant: any = null
+    if (productOrVariant && Array.isArray(productOrVariant.variants)) {
+      variant = productOrVariant.variants.find((v: any) => v.inStock && v.inStock > 0) || productOrVariant.variants[0]
+    } else {
+      // assume argument is already a variant-like object
+      variant = productOrVariant
+    }
+
+    if (!variant || !variant.id) {
+      notify.error('Lỗi', 'Không tìm thấy biến thể sản phẩm')
+      return
+    }
+
+    const payload = {
+      productVariantId: variant.id,
+      quantity: 1,
+      price: variant.discountPrice ?? variant.price ?? productOrVariant.salePrice ?? 0,
+      productName: variant.productName ?? productOrVariant.name,
+      imageUrl: variant.imageUrl ?? productOrVariant.img ?? productOrVariant.defaultImageUrl
+    }
+
+    await $fetch('http://localhost:8080/api/cart/items', {
+      method: 'POST',
+      body: payload,
+      headers: auth.getAuthHeader()
+    })
+
+    notify.success('Thành công', 'Đã thêm sản phẩm vào giỏ hàng')
+  } catch (err) {
+    console.error('Add to cart error:', err)
+    notify.error('Lỗi', 'Không thể thêm sản phẩm vào giỏ hàng')
+  }
 }
 
-const addToCart = (productId: number) => {
-  // Implement add to cart functionality
-  alert(`Đã thêm sản phẩm ${productId} vào giỏ hàng`)
+const buyNow = async (event: Event, product: any) => {
+  event.stopPropagation()
+  if (!auth.isAuthenticated.value) {
+    notify.info('Vui lòng đăng nhập', 'Bạn cần đăng nhập để mua hàng')
+    return navigateTo('/auth/auth')
+  }
+
+  try {
+    // Fetch real product + variants from backend
+    const productDetail = await $fetch<any>(`http://localhost:8080/api/products/search/by-product-id/${product.id}`)
+
+    if (!productDetail) {
+      notify.error('Lỗi', 'Không tìm thấy sản phẩm')
+      return
+    }
+
+    // Add selected variant to cart (without creating order)
+    await addToCart(event, productDetail)
+
+    notify.success('Đã thêm vào giỏ', 'Sản phẩm đã được thêm vào giỏ hàng. Vui lòng xác nhận tại giỏ hàng để thanh toán.')
+    // Redirect user to cart so they can confirm and checkout explicitly
+    return navigateTo('/cart')
+  } catch (err) {
+    console.error('Buy now error:', err)
+    notify.error('Lỗi', 'Không thể thực hiện mua ngay bây giờ')
+  }
 }
 </script>

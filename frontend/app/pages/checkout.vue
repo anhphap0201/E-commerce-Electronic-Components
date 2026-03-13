@@ -701,12 +701,12 @@ const applyVoucher = () => {
   const voucher = availableVouchers.find(v => v.code === code)
   
   if (!voucher) {
-    alert('Mã giảm giá không hợp lệ!')
+    showError('Mã giảm giá không hợp lệ!')
     return
   }
   
   if (voucher.minOrder > subtotal.value) {
-    alert(`Đơn hàng phải từ ${formatPrice(voucher.minOrder)} để sử dụng mã này!`)
+    showError(`Đơn hàng phải từ ${formatPrice(voucher.minOrder)} để sử dụng mã này!`)
     return
   }
   
@@ -716,7 +716,7 @@ const applyVoucher = () => {
 
 const selectVoucher = (voucher: any) => {
   if (voucher.minOrder > subtotal.value) {
-    alert(`Đơn hàng phải từ ${formatPrice(voucher.minOrder)} để sử dụng mã này!`)
+    showError(`Đơn hàng phải từ ${formatPrice(voucher.minOrder)} để sử dụng mã này!`)
     return
   }
   
@@ -734,12 +734,12 @@ const applyModalVoucher = () => {
   const voucher = availableVouchers.find(v => v.code === code)
   
   if (!voucher) {
-    alert('Mã giảm giá không hợp lệ!')
+    showError('Mã giảm giá không hợp lệ!')
     return
   }
   
   if (voucher.minOrder > subtotal.value) {
-    alert(`Đơn hàng phải từ ${formatPrice(voucher.minOrder)} để sử dụng mã này!`)
+    showError(`Đơn hàng phải từ ${formatPrice(voucher.minOrder)} để sử dụng mã này!`)
     return
   }
   
@@ -751,7 +751,7 @@ const applyModalVoucher = () => {
 
 const selectModalVoucher = (voucher: any) => {
   if (voucher.minOrder > subtotal.value) {
-    alert(`Đơn hàng phải từ ${formatPrice(voucher.minOrder)} để sử dụng mã này!`)
+    showError(`Đơn hàng phải từ ${formatPrice(voucher.minOrder)} để sử dụng mã này!`)
     return
   }
   
@@ -763,7 +763,7 @@ const selectModalVoucher = (voucher: any) => {
 
 const placeOrder = async () => {
   if (!isFormValid.value) {
-    alert('Vui lòng cập nhật đủ địa chỉ hồ sơ, chọn phương thức và đảm bảo giỏ hàng có sản phẩm!')
+    showError('Vui lòng cập nhật đủ địa chỉ hồ sơ, chọn phương thức và đảm bảo giỏ hàng có sản phẩm!')
     return
   }
 

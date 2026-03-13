@@ -382,6 +382,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useConfirm } from '~/composables/useConfirm'
+import { useNotification } from '~/composables/useNotification'
+import { useAuth } from '~/composables/useAuth'
 
 const API_BASE_URL = 'http://localhost:8080'
 
@@ -454,7 +457,8 @@ const fetchProducts = async () => {
     products.value = (data as any).content || []
   } catch (error) {
     console.error('Error fetching products:', error)
-    alert('Lỗi khi tải danh sách sản phẩm')
+    const { error: showError } = useNotification()
+    showError('Lỗi khi tải danh sách sản phẩm')
   }
 }
 
@@ -512,7 +516,8 @@ const closeModal = () => {
 const saveVariant = async () => {
   try {
     if (!formData.value.variantName || formData.value.price <= 0) {
-      alert('Vui lòng điền đầy đủ thông tin bắt buộc')
+      const { error: showError } = useNotification()
+      showError('Vui lòng điền đầy đủ thông tin bắt buộc')
       return
     }
 
@@ -538,7 +543,8 @@ const saveVariant = async () => {
         formData.value.imageUrl = uploadResponse.url
       } catch (uploadError: any) {
         console.error('Error uploading image:', uploadError)
-        alert('Lỗi khi tải ảnh lên: ' + (uploadError.message || 'Unknown error'))
+        const { error: showError } = useNotification()
+        showError('Lỗi khi tải ảnh lên: ' + (uploadError.message || 'Unknown error'))
         saving.value = false
         return
       }
@@ -549,20 +555,25 @@ const saveVariant = async () => {
       productId: selectedProduct.value.id
     }
 
+    const auth = useAuth()
+    const { success: showSuccess, error: showError } = useNotification()
+
     if (isEditMode.value && currentVariant.value) {
       // Update
       await $fetch(`${API_BASE_URL}/product-variants/${currentVariant.value.id}`, {
         method: 'PUT',
-        body: variantData
+        body: variantData,
+        headers: auth.getAuthHeader()
       })
-      alert('Cập nhật phân loại thành công!')
+      showSuccess('Cập nhật phân loại thành công!')
     } else {
       // Create - need to call API that creates variant for a product
       await $fetch(`${API_BASE_URL}/product-variants`, {
         method: 'POST',
-        body: variantData
+        body: variantData,
+        headers: auth.getAuthHeader()
       })
-      alert('Thêm phân loại thành công!')
+      showSuccess('Thêm phân loại thành công!')
     }
 
     closeModal()
@@ -575,20 +586,27 @@ const saveVariant = async () => {
     }
   } catch (error: any) {
     console.error('Error saving variant:', error)
-    alert('Lỗi: ' + (error.message || 'Không thể lưu phân loại'))
+    const { error: showError } = useNotification()
+    showError('Lỗi: ' + (error.message || 'Không thể lưu phân loại'))
   } finally {
     saving.value = false
   }
 }
 
 const confirmDeleteVariant = async (variant: any) => {
-  if (!confirm(`Bạn có chắc muốn xóa phân loại "${variant.variantName}"?`)) return
+  const { confirm } = useConfirm()
+  const auth = useAuth()
+  const { success: showSuccess, error: showError } = useNotification()
+
+  const ok = await confirm(`Bạn có chắc muốn xóa phân loại "${variant.variantName}"?`, 'Xác nhận xóa')
+  if (!ok) return
 
   try {
     await $fetch(`${API_BASE_URL}/product-variants/${variant.id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: auth.getAuthHeader()
     })
-    alert('Xóa phân loại thành công!')
+    showSuccess('Xóa phân loại thành công!')
     
     // Refresh
     await fetchProducts()
@@ -598,7 +616,7 @@ const confirmDeleteVariant = async (variant: any) => {
     }
   } catch (error) {
     console.error('Error deleting variant:', error)
-    alert('Lỗi khi xóa phân loại')
+    showError('Lỗi khi xóa phân loại')
   }
 }
 
