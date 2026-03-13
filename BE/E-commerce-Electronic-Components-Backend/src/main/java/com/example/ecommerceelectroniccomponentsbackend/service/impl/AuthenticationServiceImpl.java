@@ -75,14 +75,20 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         long ttl =
                 accessInfo.getExpirationTime().getTime() - System.currentTimeMillis();
-
+        log.info("TTL: {}", ttl);
         if (ttl > 0) {
-            blacklistedTokenRepository.save(
-                    BlacklistedToken.builder()
-                            .jwtId(accessInfo.getJwtId())
-                            .ttl(ttl)
-                            .build()
-            );
+            try {
+                blacklistedTokenRepository.save(
+                        BlacklistedToken.builder()
+                                .jwtId(accessInfo.getJwtId())
+                                .ttl(ttl)
+                                .build()
+                );
+                log.info("Saved access token jwtId={} to Redis blacklist with ttl={}ms", accessInfo.getJwtId(), ttl);
+            } catch (Exception e) {
+                log.error("Failed to save blacklisted token jwtId={} to Redis: {}", accessInfo.getJwtId(), e.getMessage(), e);
+                // Optional: rethrow or continue depending on desired behavior. Here we continue logout but log the error.
+            }
         }
 
         JwtInfo refreshInfo = jwtService.parseToken(refreshToken);
