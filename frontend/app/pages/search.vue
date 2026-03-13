@@ -490,7 +490,7 @@ const mapProduct = (p: any) => {
     productId: p.id,
     name: p.name,
     category: p.categories?.[0]?.name || 'N/A',
-    img: p.defaultImageUrl ? `http://localhost:8080${p.defaultImageUrl}` : (p.categories?.[0]?.imageUrl || '/images/Edunera_Logo_512.png'),
+    img: p.defaultImageUrl ? `http://localhost:8080${p.defaultImageUrl}` : (p.categories?.[0]?.imageUrl || '/images/Sub_Edunera_Logo_512.png'),
     minPrice: minPrice,
     maxPrice: maxPrice,
     priceRange: priceRange,

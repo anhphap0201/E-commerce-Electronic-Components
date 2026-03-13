@@ -615,9 +615,9 @@ Bo mạch hoàn hảo cho người mới bắt đầu và các dự án IoT, aut
 Đây là phiên bản chính hãng từ Arduino Italy với chất lượng cao, PCB màu xanh đặc trưng và logo Arduino chính thức.`,
     images: [
       '/images/ArduinoUnoR3.jpg',
-      '/images/Edunera_Logo_512.png',
-      '/images/Edunera_Logo_512.png',
-      '/images/Edunera_Logo_512.png'
+      '/images/Sub_Edunera_Logo_512.png',
+      '/images/Sub_Edunera_Logo_512.png',
+      '/images/Sub_Edunera_Logo_512.png'
     ],
     originalPrice: 200000,
     salePrice: 140000,
@@ -686,9 +686,9 @@ ESP32 có 36 GPIO pins, hỗ trợ giao tiếp I2C, SPI, UART, CAN và nhiều g
 Hỗ trợ lập trình với Arduino IDE, ESP-IDF, MicroPython. Tiêu thụ điện năng thấp với các chế độ deep sleep.`,
     images: [
       '/images/nodemcu-esp32-01.webp',
-      '/images/Edunera_Logo_512.png',
-      '/images/Edunera_Logo_512.png',
-      '/images/Edunera_Logo_512.png'
+      '/images/Sub_Edunera_Logo_512.png',
+      '/images/Sub_Edunera_Logo_512.png',
+      '/images/Sub_Edunera_Logo_512.png'
     ],
     originalPrice: 150000,
     salePrice: 105000,

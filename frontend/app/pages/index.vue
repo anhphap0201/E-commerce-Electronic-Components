@@ -206,7 +206,7 @@ onMounted(async () => {
       return {
         id: p.id,
         name: p.name,
-        img: p.defaultImageUrl ? `http://localhost:8080${p.defaultImageUrl}` : '/images/Edunera_Logo_512.png',
+        img: p.defaultImageUrl ? `http://localhost:8080${p.defaultImageUrl}` : '/images/Sub_Edunera_Logo_512.png',
         originalPrice: Number(originalPrice),
         salePrice: Number(minPrice),
         discount,
